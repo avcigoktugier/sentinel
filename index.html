@@ -39,7 +39,7 @@
     background:radial-gradient(ellipse 34% 58% at 50% 46%,rgba(241,237,230,.10),transparent 70%),
                radial-gradient(ellipse 70% 30% at 50% 105%,rgba(163,18,26,.28),transparent 70%)}
   .grain{position:fixed;inset:-50%;z-index:40;pointer-events:none;background-image:var(--grain);background-size:220px;
-    opacity:.13;mix-blend-mode:overlay;animation:grain .6s steps(4) infinite}
+    opacity:.07;animation:grain .6s steps(4) infinite;contain:strict}
   @keyframes grain{0%{transform:translate(0,0)}25%{transform:translate(-3%,2%)}50%{transform:translate(2%,-3%)}75%{transform:translate(-1%,3%)}100%{transform:translate(3%,-1%)}}
   .vignette{position:fixed;inset:0;z-index:39;pointer-events:none;box-shadow:inset 0 0 18vmin rgba(0,0,0,.85)}
   .flash{position:fixed;inset:0;z-index:38;pointer-events:none;background:#fff;opacity:0}
@@ -84,7 +84,7 @@
   #rack .rail{position:absolute;left:-5%;right:-5%;top:0;height:6px;border-radius:3px;
     background:linear-gradient(180deg,#f4f4f6,#77777e 60%,#3a3a40)}
   #rack .hang{position:absolute;top:0;left:0;width:clamp(110px,12vw,170px);transform-origin:50% 2px;will-change:transform}
-  #rack .hang svg{width:100%;height:auto;display:block;filter:brightness(.62) saturate(.9)}
+  #rack .hang img,#rack .hang svg{width:100%;height:auto;display:block;filter:brightness(.62) saturate(.9)}
 
   .stage{position:fixed;inset:0;z-index:4;display:grid;place-items:center;pointer-events:none;perspective:1200px}
   .mq{height:min(84vh,780px);aspect-ratio:300/640;pointer-events:auto;cursor:pointer;
@@ -180,7 +180,7 @@
     nav.dots,.dsk{display:none!important}
     .step{height:200vh}
     .panel,.final .panel{width:min(560px,calc(100% - 32px));margin-left:auto!important;margin-right:auto!important;padding:16px 18px;
-      background:rgba(10,9,9,.8);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid var(--line)}
+      background:rgba(12,11,11,.93);border:1px solid var(--line)}
     .step .panel,.final .panel{position:sticky;top:calc(100svh - var(--ph,300px) - 14px - env(safe-area-inset-bottom));margin-top:75svh}
     .panel .idx{font-size:10px;padding:5px 8px}
     .panel h2{font-size:clamp(26px,8vw,34px);margin:12px 0 4px}
@@ -192,11 +192,10 @@
     .chips button,.swatches button{padding:9px 11px;font-size:11px}
     .cta{margin-top:14px;padding:12px 18px}
     .hero{height:110svh;padding:0 16px calc(5svh + env(safe-area-inset-bottom));align-items:flex-end}
-    .hero .tag{background:rgba(10,9,9,.62);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);padding:16px}
+    .hero .tag{background:rgba(12,11,11,.82);padding:16px}
     .hero h1{font-size:clamp(28px,8.5vw,40px)}
     .sticker{max-width:150px;padding:9px 11px;font-size:14px}
     .outline{-webkit-text-stroke-width:1px}
-    .grain{mix-blend-mode:normal;opacity:.06}
     .vignette{box-shadow:inset 0 0 14vmin rgba(0,0,0,.8)}
     #rack{top:calc(48px + env(safe-area-inset-top))}
   }
@@ -387,7 +386,7 @@
       <g class="g-outer" data-g="tee"><g class="g-inner" id="mq-tee" opacity="0"><use href="#tee-art"/></g></g>
       <g class="g-outer" data-g="zip">
         <g class="g-inner" id="mq-zip" opacity="0"><use href="#zip-body"/></g>
-        <g id="mq-zipgems" filter="url(#glow)"></g>
+        <g id="mq-zipgems"></g>
       </g>
       <g class="g-outer" data-g="coat"><g class="g-inner" id="mq-coat" opacity="0"><use href="#coat-art"/></g></g>
       <g class="g-outer" data-g="card"><g class="g-inner" id="mq-card" opacity="0"><use href="#card-art"/></g></g>
@@ -557,7 +556,7 @@
   };
   const gemSVG = (p, body, tw) =>
     `<g transform="translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})"><circle r="${p.r.toFixed(2)}" fill="${body}"/>` +
-    `<circle r="${(p.r * .45).toFixed(2)}" cx="${(-p.r * .3).toFixed(2)}" cy="${(-p.r * .3).toFixed(2)}" fill="#fff"${tw ? ` class="gem" style="animation-delay:${tw}s"` : ''}/></g>`;
+    `<circle r="${(p.r * .45).toFixed(2)}" cx="${(-p.r * .3).toFixed(2)}" cy="${(-p.r * .3).toFixed(2)}" fill="#fff"/></g>`;
 
   /* SENTINEL in crystals: rasterise the word, then pack baguettes, ovals and rounds into the letter mask */
   async function buildTeeLogo() {
@@ -608,16 +607,12 @@
     const f = n => n.toFixed(2), edge = 'stroke="#3c4047" stroke-width=".14"';
     $('#tee-gems').innerHTML = stones.map((s, i) => {
       const t = `transform="translate(${f(s.x)} ${f(s.y)}) rotate(${f(s.a)})"`;
-      const tw = i % 9 === 0 ? `<circle class="gem" r=".32" fill="#fff" style="animation-delay:${f(rnd(0, 2))}s"/>` : '';
+      const tw = i % 9 === 0 ? `<circle r=".32" fill="#fff"/>` : '';
       if (s.type === 'bag') return `<g ${t}><rect x="${f(-s.hl)}" y="${f(-s.hw)}" width="${f(s.hl * 2)}" height="${f(s.hw * 2)}" rx=".12" fill="url(#bag)" ${edge}/>` +
         `<rect x="${f(-s.hl + .35)}" y="${f(-s.hw + .25)}" width="${f(s.hl * 2 - .7)}" height="${f(s.hw * 2 - .5)}" fill="#fff" opacity=".45"/>${tw}</g>`;
       return `<g ${t}><ellipse rx="${f(s.hl)}" ry="${f(s.hw)}" fill="url(#rnd)" ${edge}/>${tw}</g>`;
     }).join('');
-
-    // flyers get a rasterised copy: hundreds of stones x a dozen live <use> clones would be heavy
-    const svg = `<svg xmlns="${NS}" viewBox="66 96 168 214"><defs>${['teeShade', 'bag', 'rnd', 'glowS'].map(id => document.getElementById(id).outerHTML).join('')}</defs>${$('#tee-art').outerHTML}</svg>`;
-    const url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
-    tees.forEach(t => t.el.innerHTML = `<img src="${url}" alt="" style="width:100%;display:block">`);
+    return stones;
   }
 
   const zipL = [[140, 108], [120, 101], [87, 112], [64, 130], [60, 170], [55, 302], [86, 306], [92, 238], [99, 294], [132, 294]];
@@ -628,7 +623,8 @@
 
   const pantsL = [[103, 296], [149, 296], [142, 560], [109, 560]];
   const pantsR = pantsL.map(([x, y]) => [300 - x, y]);
-  $('#pants-gems').innerHTML = scatter(40, [pantsL, pantsR], [100, 290, 200, 560]).map((p, i) => gemSVG({ ...p, r: p.r * .9 }, '#e9eaee', i % 2 ? 0 : rnd(0, 2).toFixed(2))).join('');
+  const pantsGems = scatter(40, [pantsL, pantsR], [100, 290, 200, 560]);
+  $('#pants-gems').innerHTML = pantsGems.map(p => gemSVG({ ...p, r: p.r * .9 }, '#e9eaee')).join('');
 
   // mannequin's zip: body without gems + its own gems that fly in from chaos
   const defs = $('svg defs');
@@ -637,38 +633,66 @@
   zipBody.querySelector('#zip-gems').remove();
   defs.appendChild(zipBody);
   const mqZipGems = $('#mq-zipgems');
-  mqZipGems.innerHTML = zipGemMarkup.map(m => `<g class="zg">${m}</g>`).join('');
+  mqZipGems.innerHTML = zipGems.map(p => `<g class="zg">${gemSVG(p, '#d7dae0')}</g>`).join('');
   const zgs = [...mqZipGems.querySelectorAll('.zg')].map(el => ({
     el, dx: rnd(-260, 260), dy: rnd(-320, 260), d: rnd(0, .35), s: rnd(1.5, 4)
   }));
+  const teeReady = buildTeeLogo();
+
+  /* ---------------- rasterising ----------------
+     Live SVG filters (fur, glow) and hundreds of crystals repaint on every frame something moves near them.
+     Each garment is drawn into a bitmap once; the mannequin, flyers and rack all move bitmaps instead. */
+  const BOX = {
+    tee: [62, 94, 176, 228], zip: [46, 72, 208, 252], pants: [96, 244, 108, 326],
+    coat: [44, 86, 212, 404], card: [206, 312, 46, 34], rack: [50, 46, 200, 442]
+  };
+  const furDark = { '#e7dccb': '#bfae96', '#7a5236': '#4b301e' };
+  const rasterScale = clamp(Math.min(innerHeight * .84, 780) / 640 * (devicePixelRatio || 1) * 1.15, 1.5, 4);
+  const raster = async (content, box, fur = '#e7dccb') => {
+    const [x, y, w, h] = box, cw = Math.round(w * rasterScale), chh = Math.round(h * rasterScale);
+    // the bitmap is drawn outside the page, so CSS classes/vars are inlined first
+    const defsHTML = defs.innerHTML
+      .replace(/class="fur-fill"/g, `fill="${fur}"`)
+      .replace(/class="fur-shade"/g, `fill="${furDark[fur] || fur}"`)
+      .replace(/var\(--carnelian\)/g, '#b8381f');
+    const svg = `<svg xmlns="${NS}" viewBox="${x} ${y} ${w} ${h}" width="${cw}" height="${chh}"><defs>${defsHTML}</defs>${content}</svg>`;
+    const img = new Image();
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    await img.decode();
+    const cv = document.createElement('canvas');
+    cv.width = cw; cv.height = chh;
+    cv.getContext('2d').drawImage(img, 0, 0, cw, chh);
+    const blob = await new Promise(r => cv.toBlob(r, 'image/png'));
+    return URL.createObjectURL(blob);
+  };
 
   /* ---------------- flyers ---------------- */
   const fly = $('#fly');
   const fs = Math.min(1, innerWidth / 1100) * .55 + .45;  // smaller flyers on phones
-  const mk = (art, vb, w) => {
+  const mk = (kind, w) => {
     const d = document.createElement('div');
+    const [, , bw, bh] = BOX[kind];
     d.style.width = w * fs + 'px';
-    d.innerHTML = `<svg viewBox="${vb}"><use href="#${art}"/></svg>`;
+    d.style.aspectRatio = bw + '/' + bh;
+    d.innerHTML = `<img alt="" data-kind="${kind}" style="width:100%;height:100%;display:block">`;
     fly.appendChild(d); return d;
   };
   const small = innerWidth < 700;
   const tees = reduce ? [] : Array.from({ length: small ? 7 : 12 }, (_, i) => ({
-    el: mk('tee-art', '66 96 168 214', rnd(90, 160)),
+    el: mk('tee', rnd(90, 160)),
     sx: rnd(-.65, .65), sy: rnd(.6, .9), ex: rnd(-.6, .6), ey: rnd(-.9, -.7),
     arc: rnd(-.35, .35), r0: rnd(-70, 70), r1: rnd(-260, 260), d: i * .04, dur: rnd(.38, .55), ph: rnd(0, 6)
   }));
-  buildTeeLogo();
-
   // zip jackets slide sideways in chaotic rows
   const zips = reduce ? [] : Array.from({ length: small ? 6 : 9 }, (_, i) => {
     const dir = i % 2 ? 1 : -1;
     return {
-      el: mk('zip-art', '48 66 204 256', rnd(110, 200)), dir,
+      el: mk('zip', rnd(110, 200)), dir,
       row: rnd(-.42, .42), tilt: rnd(-18, 18), speed: rnd(1.1, 1.9), d: rnd(0, .25), ph: rnd(0, 6)
     };
   });
   const pants = reduce ? [] : Array.from({ length: small ? 5 : 8 }, (_, i) => ({
-    el: mk('pants-art', '96 244 108 326', rnd(50, 90)),
+    el: mk('pants', rnd(50, 90)),
     sx: rnd(-.6, .6), ex: rnd(-.6, .6), r0: rnd(-40, 40), r1: rnd(-220, 220), d: i * .05, dur: rnd(.35, .5), ph: rnd(0, 6)
   }));
 
@@ -678,44 +702,79 @@
   const hangs = furs.map(c => {
     const d = document.createElement('div');
     d.className = 'hang';
-    d.style.setProperty('--fur', c);
-    d.style.setProperty('--fur-dark', c);
-    d.innerHTML = `<svg viewBox="50 52 200 436"><use href="#hanger"/><g transform="translate(0 6)"><use href="#coat-art"/></g></svg>`;
+    d.innerHTML = `<img alt="" style="width:100%;display:block;aspect-ratio:${BOX.rack[2]}/${BOX.rack[3]}">`;
     rack.appendChild(d);
-    return { el: d, ang: 0, vel: 0, off: rnd(-20, 20) };
+    return { el: d, img: d.firstChild, c, ang: 0, vel: 0 };
   });
 
   /* ---------------- debris anchoring ---------------- */
   const debris = $$('.debris > *').map(el => ({
     el, at: el.dataset.at, y: +el.dataset.y || 0, x: el.dataset.x, r: +el.dataset.r || 0, s: +el.dataset.s || 0, top: 0
   }));
-  const placeDebris = () => {
-    const foot = document.querySelector('footer');
-    const docH = foot.offsetTop + foot.offsetHeight;
-    $$('.debris').forEach(l => l.style.height = docH + 'px');
-    debris.forEach(placeOne);
-  };
   const placeOne = d => {
     const sec = document.getElementById(d.at);
     d.top = sec.offsetTop + d.y * sec.offsetHeight;
     d.el.style.top = d.top + 'px';
     if (d.x != null) d.el.style.left = (+d.x * 100) + 'vw';
   };
+  const placeDebris = () => {
+    const foot = document.querySelector('footer');
+    const docH = foot.offsetTop + foot.offsetHeight;
+    $$('.debris').forEach(l => l.style.height = docH + 'px');
+    debris.forEach(placeOne);
+  };
 
   /* ---------------- mannequin garments ---------------- */
   const ORDER = ['tee', 'zip', 'pants', 'coat', 'card'];
   const G = { tee: $('#mq-tee'), zip: $('#mq-zip'), pants: $('#mq-pants'), coat: $('#mq-coat'), card: $('#mq-card') };
   const mq = $('#mq'), wordmark = $('#wordmark'), flashEl = $('#flash');
-  const sections = ['hero', ...ORDER, 'final'].map(id => ({ id, el: document.getElementById(id === 'coat' ? 'coat' : id) }));
+  const sections = ['hero', ...ORDER, 'final'].map(id => ({ id, el: document.getElementById(id) }));
   const panels = $$('.panel');
+  const panelSec = panels.map(p => sections.findIndex(s => s.el === p.parentElement));
   const dots = $$('nav.dots button');
   const P = {};
+
+  const setGarment = (g, url) => {
+    const [x, y, w, h] = BOX[g];
+    G[g].innerHTML = `<image href="${url}" x="${x}" y="${y}" width="${w}" height="${h}"/>`;
+  };
+  const coatUrls = {};
+  let furNow = '#e7dccb';
+  async function buildRasters() {
+    try {
+      const teeStones = await teeReady;
+      glints.tee = teeStones;
+      const [tee, zip, zipBody, pantsU, card, coatA, coatB] = await Promise.all([
+        raster('<use href="#tee-art"/>', BOX.tee), raster('<use href="#zip-art"/>', BOX.zip),
+        raster('<use href="#zip-body"/>', BOX.zip), raster('<use href="#pants-art"/>', BOX.pants),
+        raster('<use href="#card-art"/>', BOX.card),
+        raster('<use href="#coat-art"/>', BOX.coat, '#e7dccb'), raster('<use href="#coat-art"/>', BOX.coat, '#7a5236')
+      ]);
+      coatUrls['#e7dccb'] = coatA; coatUrls['#7a5236'] = coatB;
+      setGarment('tee', tee); setGarment('pants', pantsU); setGarment('card', card); setGarment('coat', coatUrls[furNow]);
+      G.zip.innerHTML = '';
+      setGarment('zip', zipBody);
+      const urls = { tee, zip, pants: pantsU };
+      $$('#fly img').forEach(im => im.src = urls[im.dataset.kind]);
+      const rackUrls = await Promise.all(hangs.map(h => raster('<use href="#hanger"/><g transform="translate(0 6)"><use href="#coat-art"/></g>', BOX.rack, h.c)));
+      hangs.forEach((h, i) => h.img.src = rackUrls[i]);
+    } catch (e) {
+      // bitmaps failed (very old browser): fall back to live SVG everywhere
+      console.warn('raster fallback', e);
+      const vb = { tee: '66 96 168 214', zip: '48 66 204 256', pants: '96 244 108 326' };
+      $$('#fly img').forEach(im => im.outerHTML = `<svg viewBox="${vb[im.dataset.kind]}" style="width:100%;display:block"><use href="#${im.dataset.kind}-art"/></svg>`);
+      hangs.forEach(h => { h.el.style.setProperty('--fur', h.c); h.el.innerHTML = `<svg viewBox="50 52 200 436"><use href="#hanger"/><g transform="translate(0 6)"><use href="#coat-art"/></g></svg>`; });
+    }
+  }
+  // crystal positions (mannequin space) used for canvas glints instead of hundreds of CSS animations
+  const glints = { tee: [], zip: zipGems, pants: pantsGems };
+  buildRasters();
 
   /* ---------------- canvases ---------------- */
   const sc = $('#stars'), sx = sc.getContext('2d');
   const pc = $('#sparks'), px = pc.getContext('2d');
-  const DPR = Math.min(devicePixelRatio || 1, 2);
-  const stars = Array.from({ length: innerWidth < 700 ? 120 : 220 }, () => ({ x: Math.random(), y: Math.random(), z: Math.random() * .9 + .1, t: Math.random() * 6, red: Math.random() < .12 }));
+  const DPR_S = 1, DPR_P = Math.min(devicePixelRatio || 1, 1.5);  // stars are specks: 1x is plenty
+  const stars = Array.from({ length: small ? 110 : 200 }, () => ({ x: Math.random(), y: Math.random(), z: Math.random() * .9 + .1, t: Math.random() * 6, red: Math.random() < .12 }));
   const sparks = [];
   // panels sit above the bottom edge on phones: CSS needs each one's real height
   const measurePanels = () => {
@@ -723,16 +782,18 @@
     panels.forEach(p => { const h = p.offsetHeight; p.style.setProperty('--ph', h + 'px'); max = Math.max(max, h); });
     document.documentElement.style.setProperty('--ph', max + 'px');
   };
-  let cw = 0, ch = 0;
+  let cw = 0, ch = 0, hangW = 150;
   const resize = () => {
     W = innerWidth; H = innerHeight;
     // mobile toolbars resize the viewport while scrolling: only reallocate when it is really needed
     if (W !== cw || H > ch) {
       ch = W !== cw ? H : Math.max(H, ch);
       cw = W;
-      for (const c of [sc, pc]) { c.width = W * DPR; c.height = ch * DPR; c.style.height = ch + 'px'; }
-      sx.setTransform(DPR, 0, 0, DPR, 0, 0); px.setTransform(DPR, 0, 0, DPR, 0, 0);
+      sc.width = W * DPR_S; sc.height = ch * DPR_S; sc.style.height = ch + 'px';
+      pc.width = W * DPR_P; pc.height = ch * DPR_P; pc.style.height = ch + 'px';
+      sx.setTransform(DPR_S, 0, 0, DPR_S, 0, 0); px.setTransform(DPR_P, 0, 0, DPR_P, 0, 0);
     }
+    hangW = hangs[0].el.offsetWidth || 150;
     measurePanels();
     placeDebris();
   };
@@ -749,7 +810,7 @@
   const burst = (x, y, n = 60, power = 9) => {
     for (let i = 0; i < n; i++) {
       const a = Math.random() * Math.PI * 2, s = Math.random() * power + 1;
-      sparks.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 2, life: 1, r: Math.random() * 5 + 2, c: hues[i % 4], g: .18 });
+      sparks.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 2, life: 1, r: Math.random() * 5 + 2, c: hues[i % 4], g: .18, k: .018 });
     }
   };
   const flash = () => {
@@ -759,21 +820,18 @@
 
   /* ---------------- input ---------------- */
   let mx = 0, my = 0, tx = 0, ty = 0, lastTrail = 0;
+  const trail = (x, y) => sparks.push({ x, y, vx: (Math.random() - .5) * 1.3, vy: Math.random() * .8 + .2, life: 1, r: Math.random() * 4 + 2, c: hues[(Math.random() * 4) | 0], g: .02, k: .018 });
   addEventListener('pointermove', e => {
     mx = e.clientX / W - .5; my = e.clientY / H - .5;
     if (reduce) return;
     const now = performance.now();
-    if (now - lastTrail > 16) {
-      lastTrail = now;
-      sparks.push({ x: e.clientX, y: e.clientY, vx: (Math.random() - .5) * 1.2, vy: Math.random() * .8 + .2, life: 1, r: Math.random() * 4 + 2, c: hues[(Math.random() * 4) | 0], g: .02 });
-    }
-  });
+    if (now - lastTrail > 16) { lastTrail = now; trail(e.clientX, e.clientY); }
+  }, { passive: true });
   // touch: sparkle trail + mannequin follows the finger
   addEventListener('touchmove', e => {
     const t = e.touches[0]; if (!t) return;
     mx = (t.clientX / W - .5) * .6; my = (t.clientY / H - .5) * .6;
-    if (reduce) return;
-    sparks.push({ x: t.clientX, y: t.clientY, vx: (Math.random() - .5) * 1.5, vy: Math.random() * .8 + .2, life: 1, r: Math.random() * 4 + 2, c: hues[(Math.random() * 4) | 0], g: .02 });
+    if (!reduce) trail(t.clientX, t.clientY);
   }, { passive: true });
   mq.addEventListener('click', e => {
     burst(e.clientX, e.clientY, 70, 10); flash();
@@ -782,8 +840,10 @@
 
   $$('.swatches button').forEach(b => b.addEventListener('click', () => {
     $$('.swatches button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    furNow = b.dataset.fur;
     document.documentElement.style.setProperty('--fur', b.dataset.fur);
     document.documentElement.style.setProperty('--fur-dark', b.dataset.dark);
+    if (coatUrls[furNow]) setGarment('coat', coatUrls[furNow]);
     const r = mq.getBoundingClientRect();
     burst(r.left + r.width / 2, r.top + r.height * .35, 40, 7);
   }));
@@ -803,13 +863,19 @@
 
   // random glitch on the wordmark
   const glitch = () => {
-    if (!reduce) { wordmark.classList.add('gl'); setTimeout(() => wordmark.classList.remove('gl'), 90 + Math.random() * 140); }
+    if (!reduce && P.hero < 1) { wordmark.classList.add('gl'); setTimeout(() => wordmark.classList.remove('gl'), 90 + Math.random() * 140); }
     setTimeout(glitch, 1400 + Math.random() * 3200);
   };
   setTimeout(glitch, 1200);
 
+  /* ---------------- write cache ----------------
+     Writing an unchanged value still invalidates style; only touch the DOM when a value really changes. */
+  const setS = (el, k, v) => { const c = el.__s || (el.__s = {}); if (c[k] !== v) { c[k] = v; el.style[k] = v; } };
+  const setA = (el, k, v) => { const c = el.__a || (el.__a = {}); if (c[k] !== v) { c[k] = v; el.setAttribute(k, v); } };
+  const r2 = n => Math.round(n * 100) / 100 || 0;
+
   /* ---------------- main loop ---------------- */
-  let lastY = scrollY, vel = 0, burstDone = false, time = 0;
+  let lastY = scrollY, vel = 0, burstDone = false, time = 0, sparksDrawn = false;
   const landed = {};
   const lookEl = $('#look b');
   let zipT = -1;
@@ -819,112 +885,116 @@
     const y = scrollY;
     vel = lerp(vel, y - lastY, .2); lastY = y;
 
-    for (const s of sections) {
-      const r = s.el.getBoundingClientRect();
-      P[s.id] = s.id === 'hero' ? clamp(y / H) : clamp((H * .75 - r.top) / r.height);
-    }
+    // ---- read phase: every layout read happens before any write
+    const rects = sections.map(s => s.el.getBoundingClientRect());
+    const mqRect = mq.getBoundingClientRect();
+
+    // ---- write phase
+    sections.forEach((s, i) => P[s.id] = s.id === 'hero' ? clamp(y / H) : clamp((H * .75 - rects[i].top) / rects[i].height));
     let active = 0;
-    sections.forEach((s, i) => { if (s.el.getBoundingClientRect().top < H * .5) active = i; });
+    rects.forEach((r, i) => { if (r.top < H * .5) active = i; });
     dots.forEach((d, i) => d.classList.toggle('on', i === active));
-    panels.forEach(p => {
-      const r = p.parentElement.getBoundingClientRect();
+    panels.forEach((p, i) => {
+      const r = rects[panelSec[i]];
       p.classList.toggle('in', r.top < H * .7 && r.bottom > H * .45);
     });
 
-    // debris parallax + jitter
+    // debris parallax
     for (const d of debris) {
-      const off = (y + H / 2 - d.top) * d.s;
-      if (Math.abs(y + H / 2 - d.top) > H * 2) continue;
-      d.el.style.transform = `translateY(${off}px) rotate(${d.r + Math.sin(time * .7 + d.top) * .8 + vel * .02}deg)`;
+      const rel = y + H / 2 - d.top;
+      if (Math.abs(rel) > H * 2) continue;
+      setS(d.el, 'transform', `translateY(${r2(rel * d.s)}px) rotate(${r2(d.r + vel * .02)}deg)`);
     }
 
     // wordmark
-    const hp = P.hero;
-    wordmark.style.letterSpacing = (-0.02 + hp * .35) + 'em';
-    wordmark.style.opacity = lerp(1, .07, easeOut(hp));
-    wordmark.style.transform = `translate(-50%,-50%) translate(${mx * -30}px,${my * -20 - hp * 40}px) scale(${1 + hp * .15}) rotate(${-hp * 4}deg)`;
-
-    // mannequin tilt + idle sway
     tx = lerp(tx, mx, .06); ty = lerp(ty, my, .06);
-    mq.style.transform = `rotateY(${tx * 26 + Math.sin(time * .9) * 1.5}deg) rotateX(${-ty * 8}deg) rotateZ(${vel * .03}deg)`;
+    const hp = P.hero;
+    setS(wordmark, 'letterSpacing', r2(-0.02 + hp * .35) + 'em');
+    setS(wordmark, 'opacity', String(r2(lerp(1, .07, easeOut(hp)))));
+    setS(wordmark, 'transform', `translate(-50%,-50%) translate(${r2(tx * -30)}px,${r2(ty * -20 - hp * 40)}px) scale(${r2(1 + hp * .15)}) rotate(${r2(-hp * 4)}deg)`);
+
+    // mannequin tilt + idle sway (composited: no repaint)
+    mq.style.transform = `rotateY(${r2(tx * 26 + Math.sin(time * .9) * 1.5)}deg) rotateX(${r2(-ty * 8)}deg) rotateZ(${r2(vel * .03)}deg)`;
 
     // ---- TEE
     const tp = P.tee;
-    tees.forEach(f => {
+    for (const f of tees) {
       const q = range(tp, f.d, f.d + f.dur);
       const v = q > 0 && q < 1;
-      f.el.style.opacity = v ? Math.sin(q * Math.PI) : 0;
-      if (!v) return;
+      setS(f.el, 'opacity', v ? String(r2(Math.sin(q * Math.PI))) : '0');
+      if (!v) continue;
       const x = lerp(f.sx, f.ex, q) * W + Math.sin(q * Math.PI) * f.arc * W;
       const yy = lerp(f.sy, f.ey, easeInOut(q)) * H;
-      f.el.style.transform = `translate(-50%,-50%) translate(${x}px,${yy}px) rotate(${lerp(f.r0, f.r1, q)}deg) rotateY(${Math.sin(time * 9 + f.ph) * 45}deg)`;
-    });
+      f.el.style.transform = `translate(-50%,-50%) translate(${r2(x)}px,${r2(yy)}px) rotate(${r2(lerp(f.r0, f.r1, q))}deg) rotateY(${r2(Math.sin(time * 9 + f.ph) * 45)}deg)`;
+    }
     const tt = range(tp, .38, .72);
-    G.tee.setAttribute('opacity', tt > 0 ? clamp(tt * 3) : 0);
+    setA(G.tee, 'opacity', String(tt > 0 ? r2(clamp(tt * 3)) : 0));
     const te = backOut(tt);
-    G.tee.style.transform = `translate(${(1 - te) * -180}px,${(1 - te) * -320}px) rotate(${(1 - te) * -40}deg) scale(${1 + (1 - te) * .8})`;
+    setS(G.tee, 'transform', `translate(${r2((1 - te) * -180)}px,${r2((1 - te) * -320)}px) rotate(${r2((1 - te) * -40)}deg) scale(${r2(1 + (1 - te) * .8)})`);
 
     // ---- ZIP: jackets slide across, one slides on, crystals converge from chaos
     const zp = P.zip;
-    zips.forEach(f => {
+    for (const f of zips) {
       const q = range(zp, f.d, f.d + .6);
       const v = q > 0 && q < 1;
-      f.el.style.opacity = v ? Math.min(1, Math.sin(q * Math.PI) * 2) : 0;
-      if (!v) return;
+      setS(f.el, 'opacity', v ? String(r2(Math.min(1, Math.sin(q * Math.PI) * 2))) : '0');
+      if (!v) continue;
       const x = f.dir * lerp(-.75, .75, q) * W * f.speed;
       const yy = f.row * H + Math.sin(q * 8 + f.ph) * 14;
-      f.el.style.transform = `translate(-50%,-50%) translate(${x}px,${yy}px) rotate(${f.tilt + f.dir * vel * .15}deg) skewX(${f.dir * -8}deg)`;
-    });
+      f.el.style.transform = `translate(-50%,-50%) translate(${r2(x)}px,${r2(yy)}px) rotate(${r2(f.tilt + f.dir * vel * .15)}deg) skewX(${f.dir * -8}deg)`;
+    }
     const zt = range(zp, .4, .74);
-    G.zip.setAttribute('opacity', zt > 0 ? 1 : 0);
+    setA(G.zip, 'opacity', zt > 0 ? '1' : '0');
     const ze = easeOut(zt);
-    G.zip.style.transform = `translateX(${(1 - ze) * -640}px) rotate(${Math.sin(zt * Math.PI * 3) * (1 - zt) * -12}deg)`;
+    setS(G.zip, 'transform', `translateX(${r2((1 - ze) * -640)}px) rotate(${r2(Math.sin(zt * Math.PI * 3) * (1 - zt) * -12)}deg)`);
     const gt = range(zp, .55, .95);
     if (gt !== zipT) {
       zipT = gt;
       for (const g of zgs) {
         const q = easeOut(range(gt, g.d, g.d + .65));
         g.el.style.opacity = gt > 0 ? q : 0;
-        g.el.style.transform = q >= 1 ? '' : `translate(${(1 - q) * g.dx}px,${(1 - q) * g.dy}px) scale(${lerp(g.s, 1, q)})`;
+        g.el.style.transform = q >= 1 ? '' : `translate(${r2((1 - q) * g.dx)}px,${r2((1 - q) * g.dy)}px) scale(${r2(lerp(g.s, 1, q))})`;
       }
     }
 
     // ---- PANTS
     const pp = P.pants;
-    pants.forEach(f => {
+    for (const f of pants) {
       const q = range(pp, f.d, f.d + f.dur);
       const v = q > 0 && q < 1;
-      f.el.style.opacity = v ? Math.min(1, Math.sin(q * Math.PI) * 1.4) : 0;
-      if (!v) return;
+      setS(f.el, 'opacity', v ? String(r2(Math.min(1, Math.sin(q * Math.PI) * 1.4))) : '0');
+      if (!v) continue;
       const x = lerp(f.sx, f.ex, q) * W * .9;
       const yy = lerp(-.8, .8, q) * H;
-      f.el.style.transform = `translate(-50%,-50%) translate(${x}px,${yy}px) rotate(${lerp(f.r0, f.r1, q)}deg) rotateX(${Math.sin(time * 6 + f.ph) * 50}deg)`;
-    });
+      f.el.style.transform = `translate(-50%,-50%) translate(${r2(x)}px,${r2(yy)}px) rotate(${r2(lerp(f.r0, f.r1, q))}deg) rotateX(${r2(Math.sin(time * 6 + f.ph) * 50)}deg)`;
+    }
     const pt = range(pp, .3, .68);
-    G.pants.setAttribute('opacity', pt > 0 ? 1 : 0);
-    G.pants.style.transform = `translateY(${(1 - bounce(pt)) * -760}px) rotate(${(1 - pt) * 8}deg)`;
+    setA(G.pants, 'opacity', pt > 0 ? '1' : '0');
+    setS(G.pants, 'transform', `translateY(${r2((1 - bounce(pt)) * -760)}px) rotate(${r2((1 - pt) * 8)}deg)`);
 
     // ---- COATS
     const cp = P.coat;
-    rack.style.opacity = range(cp, 0, .12) * (1 - range(cp, .88, 1));
-    const hw = hangs[0].el.offsetWidth || 150, gap = hw * 1.15;
-    const travel = W + hangs.length * gap + hw;
-    hangs.forEach((h, i) => {
-      const x = W + i * gap - cp * travel * 1.05;
+    const rackOp = r2(range(cp, 0, .12) * (1 - range(cp, .88, 1)));
+    setS(rack, 'opacity', String(rackOp));
+    if (rackOp > 0) {
+      const gap = hangW * 1.15, travel = W + hangs.length * gap + hangW;
       const target = clamp(-vel * .9, -28, 28);
-      h.vel += (target - h.ang) * .06; h.vel *= .88; h.ang += h.vel;
-      h.el.style.transform = `translateX(${x}px) rotate(${h.ang + Math.sin(time * 1.3 + h.off) * 1.5}deg)`;
-    });
+      hangs.forEach((h, i) => {
+        const x = W + i * gap - cp * travel * 1.05;
+        h.vel += (target - h.ang) * .06; h.vel *= .88; h.ang += h.vel;
+        setS(h.el, 'transform', `translateX(${r2(x)}px) rotate(${r2(h.ang)}deg)`);
+      });
+    }
     const ct = range(cp, .42, .8);
-    G.coat.setAttribute('opacity', ct > 0 ? 1 : 0);
+    setA(G.coat, 'opacity', ct > 0 ? '1' : '0');
     const ce = easeOut(ct);
-    G.coat.style.transform = `translateX(${(1 - ce) * 640}px) rotate(${Math.sin(ct * Math.PI * 3) * (1 - ct) * 14}deg)`;
+    setS(G.coat, 'transform', `translateX(${r2((1 - ce) * 640)}px) rotate(${r2(Math.sin(ct * Math.PI * 3) * (1 - ct) * 14)}deg)`);
 
     // ---- CARDHOLDER
     const kt = range(P.card, .28, .66);
-    G.card.setAttribute('opacity', kt > 0 ? 1 : 0);
+    setA(G.card, 'opacity', kt > 0 ? '1' : '0');
     const ke = backOut(kt);
-    G.card.style.transform = `translate(${(1 - ke) * 260}px,${(1 - ke) * -200}px) rotate(${(1 - ke) * 900}deg) scale(${.4 + ke * .6})`;
+    setS(G.card, 'transform', `translate(${r2((1 - ke) * 260)}px,${r2((1 - ke) * -200)}px) rotate(${r2((1 - ke) * 900)}deg) scale(${r2(.4 + ke * .6)})`);
 
     // camera flash + counter as each piece lands
     const T = { tee: tt, zip: Math.min(zt, gt), pants: pt, coat: ct, card: kt };
@@ -937,10 +1007,23 @@
     }
     if (lookEl.textContent != dressed) lookEl.textContent = dressed;
 
+    // crystals glint on whatever is visible on top
+    if (!reduce && Math.random() < .55) {
+      const on = k => landed[k] && !hidden[k];
+      const cand = [];
+      if (on('tee')) cand.push(['tee', p => (!on('zip') || Math.abs(p.x - 150) < 15) && (!on('coat') || Math.abs(p.x - 150) < 4)]);
+      if (on('zip')) cand.push(['zip', p => !on('coat') || Math.abs(p.x - 150) < 6]);
+      if (on('pants')) cand.push(['pants', p => !on('coat') || p.y > 482]);
+      if (cand.length) {
+        const [k, ok] = cand[(Math.random() * cand.length) | 0];
+        const set = glints[k], p = set[(Math.random() * set.length) | 0];
+        if (p && ok(p)) sparks.push({ x: mqRect.left + p.x / 300 * mqRect.width, y: mqRect.top + p.y / 640 * mqRect.height, vx: 0, vy: 0, life: 1, r: 2.6 + Math.random() * 2.4, c: '#fff', g: 0, k: .06 });
+      }
+    }
+
     if (P.final > .2 && !burstDone) {
       burstDone = true;
-      const r = mq.getBoundingClientRect();
-      burst(r.left + r.width / 2, r.top + r.height * .4, reduce ? 20 : 180, 14);
+      burst(mqRect.left + mqRect.width / 2, mqRect.top + mqRect.height * .4, reduce ? 20 : 180, 14);
     } else if (P.final < .1) burstDone = false;
 
     drawStars(y); drawSparks();
@@ -948,7 +1031,7 @@
   }
 
   function drawStars(y) {
-    sx.clearRect(0, 0, W, H);
+    sx.clearRect(0, 0, W, ch);
     for (const s of stars) {
       const yy = ((s.y * H - y * s.z * .25) % H + H) % H;
       const xx = s.x * W + tx * -40 * s.z;
@@ -960,16 +1043,18 @@
     sx.globalAlpha = 1;
   }
   function drawSparks() {
-    px.clearRect(0, 0, W, H);
+    if (!sparks.length && !sparksDrawn) return;  // nothing on screen and nothing to clear
+    px.clearRect(0, 0, W, ch);
     for (let i = sparks.length - 1; i >= 0; i--) {
       const s = sparks[i];
-      s.x += s.vx; s.y += s.vy; s.vy += s.g; s.vx *= .98; s.life -= .018;
+      s.x += s.vx; s.y += s.vy; s.vy += s.g; s.vx *= .98; s.life -= s.k;
       if (s.life <= 0) { sparks.splice(i, 1); continue; }
       px.globalAlpha = s.life; px.fillStyle = s.c;
       star4(px, s.x, s.y, s.r * s.life + .5);
     }
     px.globalAlpha = 1;
-    if (sparks.length > 600) sparks.splice(0, sparks.length - 600);
+    sparksDrawn = sparks.length > 0;
+    if (sparks.length > 500) sparks.splice(0, sparks.length - 500);
   }
 
   requestAnimationFrame(frame);
