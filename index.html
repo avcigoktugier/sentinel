@@ -1,0 +1,979 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0909">
+<title>SENTINEL — Where heat meets sparkle</title>
+<meta name="description" content="SENTINEL için interaktif konsept site: kaydırdıkça manken giyinir.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0909;
+    --ink:#f1ede6;          /* bone */
+    --mute:#8f8984;
+    --line:rgba(241,237,230,.14);
+    --red:#a3121a;          /* croc */
+    --red-hi:#e5333b;
+    --carnelian:#b8381f;
+    --fur:#e7dccb;
+    --fur-dark:#bfae96;
+    --croc:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='360'><filter id='c' x='0' y='0' width='100%' height='100%'><feTurbulence type='turbulence' baseFrequency='0.055' numOctaves='2' seed='11' stitchTiles='stitch' result='n'/><feDiffuseLighting in='n' surfaceScale='5' lighting-color='%23c3121d' result='d'><feDistantLight azimuth='225' elevation='52'/></feDiffuseLighting><feSpecularLighting in='n' surfaceScale='5' specularConstant='1.3' specularExponent='26' lighting-color='%23ffd4d4' result='s'><feDistantLight azimuth='225' elevation='52'/></feSpecularLighting><feComposite in='s' in2='d' operator='arithmetic' k2='1' k3='1'/></filter><rect width='100%' height='100%' filter='url(%23c)'/></svg>");
+    --grain:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .6 0'/></filter><rect width='100%' height='100%' filter='url(%23g)'/></svg>");
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  html,body{overflow-x:hidden}
+  @supports (overflow:clip){html,body{overflow-x:clip}}
+  body{background:var(--bg);color:var(--ink);font-family:"Space Grotesk",system-ui,sans-serif;cursor:crosshair;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
+  ::selection{background:var(--red-hi);color:#fff}
+  .croc{background-image:linear-gradient(rgba(110,0,8,.5),rgba(110,0,8,.5)),var(--croc);background-size:auto,360px;background-color:var(--red)}
+
+  /* ---------- fixed atmosphere ---------- */
+  #stars,#sparks{position:fixed;left:0;top:0;width:100%;pointer-events:none}
+  #stars{z-index:0}
+  #sparks{z-index:20}
+  .spot{position:fixed;inset:0;z-index:1;pointer-events:none;
+    background:radial-gradient(ellipse 34% 58% at 50% 46%,rgba(241,237,230,.10),transparent 70%),
+               radial-gradient(ellipse 70% 30% at 50% 105%,rgba(163,18,26,.28),transparent 70%)}
+  .grain{position:fixed;inset:-50%;z-index:40;pointer-events:none;background-image:var(--grain);background-size:220px;
+    opacity:.13;mix-blend-mode:overlay;animation:grain .6s steps(4) infinite}
+  @keyframes grain{0%{transform:translate(0,0)}25%{transform:translate(-3%,2%)}50%{transform:translate(2%,-3%)}75%{transform:translate(-1%,3%)}100%{transform:translate(3%,-1%)}}
+  .vignette{position:fixed;inset:0;z-index:39;pointer-events:none;box-shadow:inset 0 0 18vmin rgba(0,0,0,.85)}
+  .flash{position:fixed;inset:0;z-index:38;pointer-events:none;background:#fff;opacity:0}
+  .flash.go{animation:flash .55s ease-out}
+  @keyframes flash{0%{opacity:.85}100%{opacity:0}}
+
+  .wordmark{position:fixed;left:50%;top:50%;z-index:2;pointer-events:none;white-space:nowrap;
+    font-family:Syne,sans-serif;font-weight:800;font-size:clamp(64px,17vw,300px);line-height:.8;
+    transform:translate(-50%,-50%);letter-spacing:-.02em}
+  .wordmark span{display:block;background:linear-gradient(180deg,#fff 0%,#9a9aa2 45%,#fafafa 55%,#55555c 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .wordmark::before,.wordmark::after{content:attr(data-text);position:absolute;inset:0;opacity:0}
+  .wordmark::before{color:var(--red-hi)}
+  .wordmark::after{color:var(--ink)}
+  .wordmark.gl::before{opacity:.9;transform:translate(-14px,4px);clip-path:inset(18% 0 58% 0)}
+  .wordmark.gl::after{opacity:.8;transform:translate(16px,-3px);clip-path:inset(62% 0 12% 0)}
+  .wordmark.gl span{transform:skewX(-8deg)}
+
+  /* debris layers: tapes, stickers, outline words — anchored to sections, parallaxed */
+  .debris{position:absolute;left:0;top:0;width:100%;height:0;overflow:hidden;pointer-events:none}  /* height set by JS; clipping stops phones zooming out to fit the oversized words */
+  .debris.back{z-index:3}
+  .debris.front{z-index:6}
+  .debris > *{position:absolute;will-change:transform}
+  .tape{left:-10vw;width:120vw;overflow:hidden;padding:12px 0;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+  .tape div{display:flex;gap:28px;width:max-content;white-space:nowrap;animation:mq 30s linear infinite;
+    font-family:Syne,sans-serif;font-weight:800;font-size:clamp(18px,2.2vw,30px);letter-spacing:.06em;text-transform:uppercase}
+  .tape.rev div{animation-direction:reverse}
+  .tape.bone{background:var(--ink);color:#0a0909}
+  .tape.croc{color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.4)}
+  .tape.black{background:#000;color:var(--ink);border-block:1px solid var(--line)}
+  .outline{font-family:Syne,sans-serif;font-weight:800;font-size:clamp(90px,19vw,340px);line-height:.8;text-transform:uppercase;
+    color:transparent;-webkit-text-stroke:1.5px rgba(241,237,230,.22);white-space:nowrap}
+  .sticker{padding:14px 18px;font-family:Syne,sans-serif;font-weight:800;text-transform:uppercase;line-height:.95;
+    font-size:clamp(16px,1.6vw,24px);box-shadow:0 14px 40px rgba(0,0,0,.6);max-width:260px}
+  .sticker small{display:block;font-family:"Space Grotesk";font-weight:500;font-size:10px;letter-spacing:.24em;margin-top:8px;opacity:.75}
+  .sticker.bone{background:var(--ink);color:#0a0909}
+  .sticker.croc{color:#fff}
+  .sticker.hole::before{content:"";position:absolute;top:10px;right:10px;width:10px;height:10px;border-radius:50%;background:var(--bg);box-shadow:inset 0 1px 2px rgba(0,0,0,.6)}
+  .shard{width:90px;height:90px}
+
+  #rack{position:fixed;left:0;right:0;top:6vh;height:60vh;z-index:3;pointer-events:none;opacity:0;overflow:hidden}
+  #rack .rail{position:absolute;left:-5%;right:-5%;top:0;height:6px;border-radius:3px;
+    background:linear-gradient(180deg,#f4f4f6,#77777e 60%,#3a3a40)}
+  #rack .hang{position:absolute;top:0;left:0;width:clamp(110px,12vw,170px);transform-origin:50% 2px;will-change:transform}
+  #rack .hang svg{width:100%;height:auto;display:block;filter:brightness(.62) saturate(.9)}
+
+  .stage{position:fixed;inset:0;z-index:4;display:grid;place-items:center;pointer-events:none;perspective:1200px}
+  .mq{height:min(84vh,780px);aspect-ratio:300/640;pointer-events:auto;cursor:pointer;
+    transform-style:preserve-3d;will-change:transform;margin-top:4vh}
+  .mq svg{width:100%;height:100%;overflow:visible;display:block}
+  .mq.wiggle{animation:wiggle .6s cubic-bezier(.3,1.6,.5,1)}
+  @keyframes wiggle{0%{scale:1}30%{scale:1.04 .97}60%{scale:.98 1.03}100%{scale:1}}
+  .g-outer{transition:opacity .45s ease, filter .45s ease}
+  .g-outer.off{opacity:0;filter:blur(6px)}
+  .g-inner{transform-box:fill-box;transform-origin:50% 50%;will-change:transform}
+  .gem{animation:twinkle 1.8s ease-in-out infinite}
+  @keyframes twinkle{0%,100%{opacity:.25}50%{opacity:1}}
+  .fur-fill{fill:var(--fur);transition:fill .6s ease}
+  .fur-shade{fill:var(--fur-dark);transition:fill .6s ease}
+
+  #fly{position:fixed;inset:0;overflow:hidden;z-index:5;pointer-events:none}
+  #fly > div{position:absolute;left:50%;top:50%;will-change:transform,opacity;opacity:0}
+  #fly svg{display:block;width:100%;height:auto;overflow:visible}
+
+  /* ---------- HUD ---------- */
+  header{position:fixed;top:0;left:0;right:0;z-index:30;display:flex;justify-content:space-between;align-items:center;
+    padding:max(20px,env(safe-area-inset-top)) max(clamp(16px,4vw,48px),env(safe-area-inset-right)) 20px max(clamp(16px,4vw,48px),env(safe-area-inset-left));mix-blend-mode:difference;pointer-events:none}
+  header a,header span{pointer-events:auto;color:#fff;text-decoration:none;font-size:12px;letter-spacing:.24em;text-transform:uppercase}
+  .logo{font-family:Syne,sans-serif;font-weight:800;font-size:18px!important;letter-spacing:.32em!important}
+  #look b{font-weight:500}
+  nav.dots{position:fixed;right:clamp(12px,2.4vw,32px);top:50%;transform:translateY(-50%);z-index:30;display:flex;flex-direction:column;gap:14px}
+  nav.dots button{all:unset;cursor:pointer;display:flex;align-items:center;gap:10px;justify-content:flex-end;color:var(--mute);
+    font-size:10px;letter-spacing:.2em;text-transform:uppercase}
+  nav.dots button i{width:7px;height:7px;border:1px solid currentColor;transform:rotate(45deg);transition:all .3s}
+  nav.dots button span{opacity:0;transform:translateX(6px);transition:all .3s}
+  nav.dots button:hover span,nav.dots button.on span{opacity:1;transform:none}
+  nav.dots button.on{color:var(--ink)}
+  nav.dots button.on i{background:var(--red-hi);border-color:var(--red-hi);transform:rotate(45deg) scale(1.4)}
+
+  /* ---------- scroll content ---------- */
+  main{position:relative;z-index:10;pointer-events:none}
+  section{position:relative}
+  .hero{height:140vh;display:flex;align-items:flex-end;justify-content:flex-start;padding:0 0 40vh clamp(16px,6vw,96px)}
+  .hero .tag{max-width:400px;pointer-events:auto}
+  .kicker{font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--mute)}
+  .hero h1{font-family:"Instrument Serif",serif;font-style:italic;font-weight:400;font-size:clamp(30px,3.6vw,52px);line-height:1;margin:14px 0}
+  .hero h1 b{font-style:normal;font-family:Syne,sans-serif;font-weight:800;font-size:.72em;text-transform:uppercase;letter-spacing:-.01em;
+    padding:0 .18em;color:#fff;background-image:linear-gradient(rgba(110,0,8,.5),rgba(110,0,8,.5)),var(--croc);background-size:auto,200px;background-color:var(--red)}
+  .scrollhint{display:inline-flex;flex-direction:column;align-items:flex-start;gap:10px;margin-top:22px;font-size:11px;letter-spacing:.28em;color:var(--mute);text-transform:uppercase}
+  .scrollhint i{width:1px;height:46px;background:linear-gradient(var(--red-hi),transparent);animation:drip 1.6s ease-in-out infinite;transform-origin:top}
+  @keyframes drip{0%{transform:scaleY(0)}50%{transform:scaleY(1)}100%{transform:scaleY(1);opacity:0}}
+
+  .step{height:230vh}
+  .panel{position:sticky;top:24vh;width:min(380px,30vw);pointer-events:auto;
+    opacity:0;transform:translateY(40px) rotate(-1.5deg);transition:opacity .6s ease,transform .7s cubic-bezier(.2,.8,.2,1)}
+  .panel.in{opacity:1;transform:none}
+  .final .panel,.step.left .panel{margin-left:clamp(16px,6vw,96px)}
+  .step.right .panel{margin-left:auto;margin-right:clamp(48px,8vw,130px)}
+  .panel .idx{display:inline-block;padding:6px 10px;font-family:Syne,sans-serif;font-weight:700;font-size:11px;letter-spacing:.2em;color:#fff;
+    background-image:linear-gradient(rgba(110,0,8,.5),rgba(110,0,8,.5)),var(--croc);background-size:auto,200px;background-color:var(--red);transform:rotate(-2deg)}
+  .panel h2{font-family:Syne,sans-serif;font-weight:800;font-size:clamp(34px,4.2vw,64px);line-height:.9;letter-spacing:-.02em;margin:16px 0 6px;text-transform:uppercase}
+  .panel h2 em{font-family:"Instrument Serif",serif;font-style:italic;font-weight:400;text-transform:none;letter-spacing:0;display:block;font-size:.6em;color:var(--red-hi)}
+  .panel p{color:#cbc5bd;line-height:1.6;font-size:15px;margin-top:14px}
+  .price{display:flex;align-items:baseline;gap:12px;margin-top:20px;padding-top:16px;border-top:1px dashed var(--line)}
+  .price b{font-family:Syne,sans-serif;font-size:22px;font-weight:700}
+  .price span{font-size:11px;letter-spacing:.2em;color:var(--mute);text-transform:uppercase}
+
+  .swatches{display:flex;gap:10px;margin-top:18px}
+  .swatches button,.chips button{all:unset;cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--line);
+    font-size:12px;letter-spacing:.14em;text-transform:uppercase;transition:all .25s}
+  .swatches button i{width:16px;height:16px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.3)}
+  .swatches button[aria-pressed=true],.chips button[aria-pressed=true]{border-color:var(--ink);background:rgba(241,237,230,.08)}
+  .swatches button:hover,.chips button:hover{border-color:var(--red-hi)}
+  .swatches button:focus-visible,.chips button:focus-visible,nav.dots button:focus-visible{outline:2px solid var(--red-hi);outline-offset:3px}
+
+  .marquee{position:relative;z-index:10;overflow:hidden;padding:18px 0;transform:rotate(-2deg);box-shadow:0 20px 50px rgba(0,0,0,.6)}
+  .marquee div{display:flex;gap:48px;white-space:nowrap;width:max-content;animation:mq 26s linear infinite;
+    font-family:Syne,sans-serif;font-weight:800;font-size:clamp(22px,3vw,40px);text-transform:uppercase;color:#fff}
+  .marquee span:nth-child(even){font-family:"Instrument Serif",serif;font-style:italic;font-weight:400;text-transform:none}
+  @keyframes mq{to{transform:translateX(-50%)}}
+
+  .final{height:240vh}
+  .final .panel{width:min(420px,32vw)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  .chips button i{width:8px;height:8px;transform:rotate(45deg);background:var(--red-hi);transition:opacity .25s}
+  .chips button[aria-pressed=false] i{opacity:.2}
+  .cta{display:inline-flex;margin-top:22px;padding:14px 22px;background:var(--ink);color:#000;text-decoration:none;
+    font-size:12px;letter-spacing:.2em;text-transform:uppercase;font-weight:700;transition:transform .25s}
+  .cta:hover{transform:translateY(-2px) rotate(-1deg)}
+  footer{position:relative;z-index:10;padding:28px clamp(16px,4vw,48px);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;
+    font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);border-top:1px solid var(--line);background:var(--bg)}
+  footer a{color:inherit}
+
+  @media (max-width:900px){
+    body{cursor:auto}
+    .stage{place-items:start center;padding-top:calc(58px + env(safe-area-inset-top))}
+    .mq{height:min(64svh,calc(100svh - var(--ph,300px) - 92px));min-height:220px;margin-top:0}
+    nav.dots,.dsk{display:none!important}
+    .step{height:200vh}
+    .panel,.final .panel{width:min(560px,calc(100% - 32px));margin-left:auto!important;margin-right:auto!important;padding:16px 18px;
+      background:rgba(10,9,9,.8);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid var(--line)}
+    .step .panel,.final .panel{position:sticky;top:calc(100svh - var(--ph,300px) - 14px - env(safe-area-inset-bottom));margin-top:75svh}
+    .panel .idx{font-size:10px;padding:5px 8px}
+    .panel h2{font-size:clamp(26px,8vw,34px);margin:12px 0 4px}
+    .panel p{font-size:13.5px;line-height:1.5;margin-top:8px}
+    .price{margin-top:12px;padding-top:10px}
+    .price b{font-size:19px}
+    .final .panel p{display:none}
+    .chips{gap:6px;margin-top:12px}
+    .chips button,.swatches button{padding:9px 11px;font-size:11px}
+    .cta{margin-top:14px;padding:12px 18px}
+    .hero{height:110svh;padding:0 16px calc(5svh + env(safe-area-inset-bottom));align-items:flex-end}
+    .hero .tag{background:rgba(10,9,9,.62);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);padding:16px}
+    .hero h1{font-size:clamp(28px,8.5vw,40px)}
+    .sticker{max-width:150px;padding:9px 11px;font-size:14px}
+    .outline{-webkit-text-stroke-width:1px}
+    .grain{mix-blend-mode:normal;opacity:.06}
+    .vignette{box-shadow:inset 0 0 14vmin rgba(0,0,0,.8)}
+    #rack{top:calc(48px + env(safe-area-inset-top))}
+  }
+  /* phones held sideways: mannequin left, panel right */
+  @media (max-height:520px) and (orientation:landscape){
+    .stage{place-items:center start;padding:0 0 0 6vw}
+    .mq{height:86svh;min-height:0;margin-top:6svh}
+    .wordmark{font-size:22vw}
+    .step,.final{height:220vh}
+    .step .panel,.final .panel{position:sticky;top:max(52px,calc(50svh - var(--ph,240px) / 2 + 10px));margin:0 16px 0 auto!important;width:min(420px,52vw)}
+    .panel{padding:12px 16px}
+    .panel h2{font-size:26px}
+    .panel p{font-size:12.5px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+    .hero{justify-content:flex-end;padding:0 16px 8svh}
+    .hero .tag{max-width:360px}
+    .hero h1{font-size:28px}
+    .tape div{font-size:16px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .marquee div,.tape div,.gem,.scrollhint i,.grain{animation:none}
+    html{scroll-behavior:auto}
+  }
+</style>
+</head>
+<body>
+
+<!-- ======= shared garment art (coordinates = mannequin space 300x640) ======= -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="chrome" gradientUnits="userSpaceOnUse" x1="40" y1="0" x2="260" y2="0">
+      <stop offset="0" stop-color="#5b5e64"/><stop offset=".22" stop-color="#d9dce1"/>
+      <stop offset=".42" stop-color="#8f9299"/><stop offset=".58" stop-color="#f7f8fa"/>
+      <stop offset=".8" stop-color="#9c9fa6"/><stop offset="1" stop-color="#4d5055"/>
+    </linearGradient>
+    <pattern id="rib" width="2.4" height="10" patternUnits="userSpaceOnUse">
+      <rect width="2.4" height="10" fill="#efece6"/><rect width=".7" height="10" fill="#d6d2ca"/>
+    </pattern>
+    <linearGradient id="edgeShade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#000" stop-opacity=".35"/><stop offset=".25" stop-color="#000" stop-opacity="0"/>
+      <stop offset=".75" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".4"/>
+    </linearGradient>
+    <linearGradient id="zipShade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#030303"/><stop offset=".45" stop-color="#1a1a1c"/><stop offset="1" stop-color="#060606"/>
+    </linearGradient>
+    <linearGradient id="pantShade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#55565c"/><stop offset=".3" stop-color="#9a9ba1"/><stop offset=".5" stop-color="#6f7076"/>
+      <stop offset=".7" stop-color="#a3a4aa"/><stop offset="1" stop-color="#4c4d52"/>
+    </linearGradient>
+    <filter id="fur" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="3" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="9" xChannelSelector="R" yChannelSelector="G" result="d"/>
+      <feTurbulence type="fractalNoise" baseFrequency=".06 .9" numOctaves="3" seed="8" result="s"/>
+      <feColorMatrix in="s" type="saturate" values="0" result="g"/>
+      <feComponentTransfer in="g" result="g2">
+        <feFuncR type="linear" slope=".7" intercept=".45"/><feFuncG type="linear" slope=".7" intercept=".45"/><feFuncB type="linear" slope=".7" intercept=".45"/>
+      </feComponentTransfer>
+      <feComposite in="g2" in2="d" operator="in" result="tex"/>
+      <feBlend in="tex" in2="d" mode="multiply"/>
+    </filter>
+    <filter id="glowS"><feGaussianBlur stdDeviation=".45" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="glow"><feGaussianBlur stdDeviation="1" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+
+    <linearGradient id="teeShade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#030303"/><stop offset=".5" stop-color="#19191b"/><stop offset="1" stop-color="#030303"/>
+    </linearGradient>
+    <!-- crystal cuts: baguette facets + round brilliant -->
+    <linearGradient id="bag" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8f96a1"/><stop offset=".18" stop-color="#fff"/><stop offset=".35" stop-color="#c3c9d2"/>
+      <stop offset=".5" stop-color="#fff"/><stop offset=".65" stop-color="#aeb5c0"/><stop offset=".82" stop-color="#f4f6f9"/><stop offset="1" stop-color="#7d848f"/>
+    </linearGradient>
+    <radialGradient id="rnd" cx=".35" cy=".35" r=".75">
+      <stop offset="0" stop-color="#fff"/><stop offset=".4" stop-color="#e2e6ec"/><stop offset=".8" stop-color="#9ba2ad"/><stop offset="1" stop-color="#6d737d"/>
+    </radialGradient>
+
+    <!-- CRYSTAL TEE: black fitted baby tee, SENTINEL set in baguette crystals (stones packed by JS) -->
+    <g id="tee-art">
+      <path fill="url(#teeShade)" d="M118 102 Q150 114 182 102 L212 108 L230 154 L204 166 L205 170 Q203 210 190 250 L197 302 Q150 318 103 302 L110 250 Q97 210 95 170 L96 166 L70 154 L88 108 Z"/>
+      <path d="M95 170 Q97 210 110 250 L103 302 M205 170 Q203 210 190 250 L197 302 M96 166 L70 154 M204 166 L230 154" fill="none" stroke="#000" stroke-width="2" opacity=".6"/>
+      <path d="M118 102 Q150 114 182 102" fill="none" stroke="#232326" stroke-width="5" stroke-linecap="round"/>
+      <g id="tee-gems" filter="url(#glowS)"></g>
+    </g>
+
+    <!-- CRYSTAL ZIP JACKET: black, open front, silver zip, scattered crystals -->
+    <g id="zip-half">
+      <path fill="url(#zipShade)" d="M141 104 L120 98 L86 110 Q62 128 58 170 L52 314 L88 318 L93 238 L97 292 L98 306 L133 306 Z"/>
+      <path d="M52 304 L88 308 L88 318 L52 314 Z" fill="#141416"/>
+      <path d="M97 296 L133 296 L133 306 L98 306 Z" fill="#141416"/>
+      <path d="M141 106 L133 306" stroke="#c9ccd2" stroke-width="2.6" stroke-dasharray="1.1 .9"/>
+      <path d="M141 106 L133 306" stroke="#fff" stroke-width=".5" opacity=".6"/>
+    </g>
+    <g id="zip-art">
+      <path d="M112 100 Q150 66 188 100 Q170 118 150 120 Q130 118 112 100 Z" fill="#0c0c0d" stroke="#1e1e21"/>
+      <use href="#zip-half"/>
+      <use href="#zip-half" transform="translate(300 0) scale(-1 1)"/>
+      <rect x="136" y="160" width="4" height="9" rx="1" fill="#e2e4e8"/>
+      <g id="zip-gems" filter="url(#glow)"></g>
+    </g>
+
+    <!-- COSMOS SWEATPANTS -->
+    <g id="pants-art">
+      <path fill="url(#pantShade)" d="M106 250 L194 250 L199 300 L192 566 L158 566 L151 318 L149 318 L142 566 L108 566 L101 300 Z"/>
+      <rect x="105" y="248" width="90" height="12" rx="3" fill="#56575c"/>
+      <path d="M144 260 q-3 18 -8 24 M156 260 q3 18 8 24" stroke="#e9e9ec" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+      <rect x="107" y="548" width="36" height="18" rx="4" fill="#55565b"/>
+      <rect x="157" y="548" width="36" height="18" rx="4" fill="#55565b"/>
+      <path d="M150 262 L150 318" stroke="#4a4b50" stroke-width="1.2"/>
+      <g id="pants-gems" filter="url(#glow)"></g>
+    </g>
+
+    <!-- FUR COAT -->
+    <g id="coat-half">
+      <path class="fur-fill" d="M146 96 L118 99 L86 112 Q70 140 64 220 L56 318 L88 322 L94 236 L98 300 L90 476 Q118 484 146 480 Z"/>
+      <path class="fur-shade" d="M94 236 L98 300 L90 476 Q100 479 108 480 L112 300 Z" opacity=".55"/>
+    </g>
+    <g id="coat-art">
+      <g filter="url(#fur)">
+        <use href="#coat-half"/>
+        <use href="#coat-half" transform="translate(300 0) scale(-1 1)"/>
+        <path class="fur-fill" d="M112 98 Q150 150 188 98 Q206 92 210 116 Q150 186 90 116 Q94 92 112 98 Z"/>
+        <path class="fur-shade" d="M104 120 Q150 176 196 120 Q150 160 104 120 Z" opacity=".6"/>
+      </g>
+    </g>
+
+    <!-- CORNALINA CARDHOLDER -->
+    <g id="card-art">
+      <rect x="212" y="318" width="34" height="23" rx="4" fill="var(--carnelian)"/>
+      <rect x="212" y="318" width="34" height="9" rx="4" fill="#d24a2c"/>
+      <text x="229" y="337" text-anchor="middle" font-family="Syne,sans-serif" font-weight="800" font-size="7" fill="#f6d6c8" letter-spacing="1">S</text>
+      <rect x="212.5" y="318.5" width="33" height="22" rx="3.5" fill="none" stroke="#ff9b80" stroke-width=".6" opacity=".6"/>
+    </g>
+
+    <g id="hanger">
+      <path d="M150 62 q0 -10 8 -10 q8 0 8 8 q0 6 -8 10 L150 76" fill="none" stroke="#cfd0d4" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M150 76 L92 104 L208 104 Z" fill="none" stroke="#a9aab0" stroke-width="3" stroke-linejoin="round"/>
+    </g>
+
+    <!-- crystal shard for debris -->
+    <g id="shard">
+      <path d="M45 4 L70 30 L58 84 L30 86 L14 34 Z" fill="#f4f6fa" opacity=".9"/>
+      <path d="M45 4 L58 84 L30 86 Z" fill="#b9c0cc"/>
+      <path d="M45 4 L14 34 L30 86 Z" fill="#dfe4ec"/>
+      <path d="M45 4 L70 30 L58 84 Z" fill="#8f97a5"/>
+      <path d="M45 4 L52 40 L45 60 L38 40 Z" fill="#fff" opacity=".8"/>
+    </g>
+  </defs>
+</svg>
+
+<canvas id="stars"></canvas>
+<div class="spot"></div>
+<div class="wordmark" id="wordmark" data-text="SENTINEL" aria-hidden="true"><span>SENTINEL</span></div>
+<div id="rack" aria-hidden="true"><div class="rail"></div></div>
+
+<!-- back debris (behind mannequin) -->
+<div class="debris back" id="debrisBack" aria-hidden="true">
+  <div class="tape bone" data-at="hero" data-y=".36" data-r="-8" data-s=".25"><div lang="en"><span>Sentinel ✦</span><span>Sentinel ✦</span><span>Sentinel ✦</span><span>Sentinel ✦</span><span>Sentinel ✦</span><span>Sentinel ✦</span><span>Sentinel ✦</span><span>Sentinel ✦</span><span>Sentinel ✦</span><span>Sentinel ✦</span><span>Sentinel ✦</span><span>Sentinel ✦</span><span>Sentinel ✦</span><span>Sentinel ✦</span></div></div>
+  <div class="tape croc rev" data-at="hero" data-y=".78" data-r="5" data-s="-.15"><div lang="en"><span>Where heat meets sparkle ✦</span><span>Where heat meets sparkle ✦</span><span>Where heat meets sparkle ✦</span><span>Where heat meets sparkle ✦</span><span>Where heat meets sparkle ✦</span><span>Where heat meets sparkle ✦</span></div></div>
+  <div class="outline" data-at="tee" data-y=".15" data-x=".42" data-r="-4" data-s=".35" lang="en">Crystal</div>
+  <div class="tape black" data-at="zip" data-y=".25" data-r="-12" data-s=".2"><div lang="en"><span>Zip it ✦ Sparkle ✦</span><span>Zip it ✦ Sparkle ✦</span><span>Zip it ✦ Sparkle ✦</span><span>Zip it ✦ Sparkle ✦</span><span>Zip it ✦ Sparkle ✦</span><span>Zip it ✦ Sparkle ✦</span><span>Zip it ✦ Sparkle ✦</span><span>Zip it ✦ Sparkle ✦</span></div></div>
+  <div class="outline" data-at="pants" data-y=".2" data-x="-.05" data-r="3" data-s=".3" lang="en">Cosmic</div>
+  <div class="outline" data-at="coat" data-y=".1" data-x=".35" data-r="-3" data-s=".3" lang="en">Wntr</div>
+  <div class="tape croc" data-at="card" data-y=".3" data-r="9" data-s=".2"><div lang="en"><span>More texture ✦ More color ✦ More wild ✦</span><span>More texture ✦ More color ✦ More wild ✦</span><span>More texture ✦ More color ✦ More wild ✦</span><span>More texture ✦ More color ✦ More wild ✦</span></div></div>
+  <div class="tape bone" data-at="final" data-y=".68" data-r="-7" data-s=".15"><div lang="en"><span>Dare to be seen ✦</span><span>Dare to be seen ✦</span><span>Dare to be seen ✦</span><span>Dare to be seen ✦</span><span>Dare to be seen ✦</span><span>Dare to be seen ✦</span><span>Dare to be seen ✦</span><span>Dare to be seen ✦</span><span>Dare to be seen ✦</span></div></div>
+  <div class="tape croc rev" data-at="final" data-y=".73" data-r="6" data-s=".1"><div lang="en"><span>Sentinel ✦ Sentinel ✦</span><span>Sentinel ✦ Sentinel ✦</span><span>Sentinel ✦ Sentinel ✦</span><span>Sentinel ✦ Sentinel ✦</span><span>Sentinel ✦ Sentinel ✦</span><span>Sentinel ✦ Sentinel ✦</span><span>Sentinel ✦ Sentinel ✦</span></div></div>
+</div>
+
+<div class="stage">
+  <div class="mq" id="mq" role="img" aria-label="Kaydırdıkça giyinen manken">
+    <svg viewBox="0 0 300 640">
+      <ellipse cx="150" cy="604" rx="96" ry="15" fill="#151518" stroke="#3a3a40"/>
+      <ellipse cx="150" cy="600" rx="96" ry="15" fill="url(#chrome)" opacity=".35"/>
+      <g fill="url(#chrome)" stroke="url(#chrome)" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M128 300 L124 450 L122 568" fill="none" stroke-width="28"/>
+        <path d="M172 300 L176 450 L178 568" fill="none" stroke-width="28"/>
+        <ellipse cx="120" cy="584" rx="16" ry="7" stroke="none"/>
+        <ellipse cx="180" cy="584" rx="16" ry="7" stroke="none"/>
+        <path d="M96 122 L80 220 L72 318" fill="none" stroke-width="22"/>
+        <path d="M204 122 L220 220 L228 318" fill="none" stroke-width="22"/>
+        <circle cx="71" cy="330" r="11" stroke="none"/>
+        <circle cx="229" cy="330" r="11" stroke="none"/>
+        <rect x="139" y="82" width="22" height="28" rx="6" stroke="none"/>
+        <path stroke="none" d="M100 112 Q150 98 200 112 L207 140 Q200 200 188 250 L194 300 Q150 314 106 300 L112 250 Q100 200 93 140 Z"/>
+        <ellipse cx="150" cy="56" rx="27" ry="33" stroke="none"/>
+      </g>
+      <path d="M150 116 L150 300 M112 250 Q150 262 188 250" stroke="#000" stroke-opacity=".12" fill="none"/>
+      <ellipse cx="141" cy="44" rx="7" ry="12" fill="#fff" opacity=".35"/>
+
+      <g class="g-outer" data-g="pants"><g class="g-inner" id="mq-pants" opacity="0"><use href="#pants-art"/></g></g>
+      <g class="g-outer" data-g="tee"><g class="g-inner" id="mq-tee" opacity="0"><use href="#tee-art"/></g></g>
+      <g class="g-outer" data-g="zip">
+        <g class="g-inner" id="mq-zip" opacity="0"><use href="#zip-body"/></g>
+        <g id="mq-zipgems" filter="url(#glow)"></g>
+      </g>
+      <g class="g-outer" data-g="coat"><g class="g-inner" id="mq-coat" opacity="0"><use href="#coat-art"/></g></g>
+      <g class="g-outer" data-g="card"><g class="g-inner" id="mq-card" opacity="0"><use href="#card-art"/></g></g>
+    </svg>
+  </div>
+</div>
+
+<!-- front debris (over mannequin) -->
+<div class="debris front" id="debrisFront" aria-hidden="true">
+  <div class="sticker croc hole" data-at="tee" data-y=".42" data-x=".62" data-r="9" data-s="-.35" lang="en">More texture.<br>More color.<br>More wild...<small>Sentinel</small></div>
+  <svg class="shard dsk" viewBox="0 0 90 90" data-at="tee" data-y=".7" data-x=".28" data-r="-20" data-s="-.6"><use href="#shard"/></svg>
+  <div class="sticker bone dsk" data-at="zip" data-y=".6" data-x=".27" data-r="-6" data-s="-.4" lang="en">Where heat<br>meets sparkle.<small>No. 02</small></div>
+  <svg class="shard" viewBox="0 0 90 90" data-at="zip" data-y=".35" data-x=".58" data-r="25" data-s="-.8" style="width:56px;height:56px"><use href="#shard"/></svg>
+  <svg class="shard dsk" viewBox="0 0 90 90" data-at="pants" data-y=".6" data-x=".1" data-r="-35" data-s="-.5"><use href="#shard"/></svg>
+  <div class="sticker croc dsk" data-at="pants" data-y=".4" data-x=".66" data-r="4" data-s="-.3" lang="en">Shine<br>anywhere,<br>anytime.<small>The Cosmic Line</small></div>
+  <div class="sticker bone hole dsk" data-at="card" data-y=".5" data-x=".08" data-r="-7" data-s="-.35" lang="en">Heat<small>No. 05</small></div>
+  <svg class="shard" viewBox="0 0 90 90" data-at="final" data-y=".5" data-x=".62" data-r="15" data-s="-.7"><use href="#shard"/></svg>
+</div>
+
+<div id="fly" aria-hidden="true"></div>
+<canvas id="sparks"></canvas>
+<div class="flash" id="flash"></div>
+<div class="vignette"></div>
+<div class="grain"></div>
+
+<header>
+  <a class="logo" href="#hero" lang="en">Sentinel</a>
+  <span id="look">Look <b>0</b>/5</span>
+</header>
+
+<nav class="dots" aria-label="Bölümler">
+  <button data-to="hero"><span>Giriş</span><i></i></button>
+  <button data-to="tee"><span>Crystal Tee</span><i></i></button>
+  <button data-to="zip"><span>Zip</span><i></i></button>
+  <button data-to="pants"><span>Cosmos</span><i></i></button>
+  <button data-to="coat"><span>Fur</span><i></i></button>
+  <button data-to="card"><span lang="en">Cornalina</span><i></i></button>
+  <button data-to="final"><span>Look</span><i></i></button>
+</nav>
+
+<main>
+  <section class="hero" id="hero">
+    <div class="tag">
+      <div class="kicker" lang="en">Limited edition · Premium fabrics</div>
+      <h1>Where <b lang="en">heat</b> meets sparkle.</h1>
+      <div class="scrollhint">Kaydır, manken giyinsin<i></i></div>
+    </div>
+  </section>
+
+  <section class="step left" id="tee">
+    <div class="panel">
+      <div class="idx">01 — CRYSTAL DROP</div>
+      <h2 lang="en">Crystal Tee<em>gökten yağar, üstüne oturur</em></h2>
+      <p>Siyah, vücudu saran kısa kollu tişört. Göğsünde baget, oval ve yuvarlak kristallerle işlenmiş <span lang="en">SENTINEL</span> yazısı var. Tişörtler havada uçuşurken biri mankene konuyor.</p>
+      <div class="price"><b>₺2.200</b><span>Sınırlı sayıda</span></div>
+    </div>
+  </section>
+
+  <section class="step right" id="zip">
+    <div class="panel">
+      <div class="idx">02 — AFTER DARK</div>
+      <h2 lang="en">Crystal Zip<em>siyah, kristal serpme</em></h2>
+      <p>Simsiyah fermuarlı ceket, üstünde yüzlerce küçük kristal. Ceketler ekrandan kayıp geçiyor, kristaller dağılıp mankenin üstünde yeniden toplanıyor.</p>
+      <div class="price"><b>Yakında</b><span>Mağazada</span></div>
+    </div>
+  </section>
+
+  <section class="step left" id="pants">
+    <div class="panel">
+      <div class="idx">03 — THE COSMIC LINE</div>
+      <h2 lang="en">Cosmos<em>sweatpants</em></h2>
+      <p>Athleisure'ı ışıltıyla yeniden tanımlayan seri: el işi taşlar ile %100 organik pamuk bir arada. Her yerde, her an parlamak için.</p>
+      <div class="price"><b>₺2.600</b><span lang="en">The Cosmic Line</span></div>
+    </div>
+  </section>
+
+  <div class="marquee croc" aria-hidden="true"><div lang="en">
+    <span>Dare to be seen</span><span>move differently</span><span>Sentinel</span><span>more wild</span>
+    <span>Dare to be seen</span><span>move differently</span><span>Sentinel</span><span>more wild</span>
+  </div></div>
+
+  <section class="step right" id="coat">
+    <div class="panel">
+      <div class="idx">04 — WNTR</div>
+      <h2 lang="en">Fur<em>Atlas &amp; Ankole</em></h2>
+      <p>Askılar raydan kayıp geçiyor, seçtiğin kürk mankenin omzuna oturuyor. Modeli değiştir, manken anında üstünü değiştirsin.</p>
+      <div class="swatches" role="group" aria-label="Kürk modeli">
+        <button data-fur="#e7dccb" data-dark="#bfae96" aria-pressed="true"><i style="background:#e7dccb"></i>Atlas</button>
+        <button data-fur="#7a5236" data-dark="#4b301e" aria-pressed="false"><i style="background:#7a5236"></i>Ankole</button>
+      </div>
+      <div class="price"><b>₺8.000</b><span>Her biri</span></div>
+    </div>
+  </section>
+
+  <section class="step left" id="card">
+    <div class="panel">
+      <div class="idx">05 — ACCESSORIES</div>
+      <h2 lang="en">Cornalina<em>cardholder</em></h2>
+      <p>Akik kırmızısı küçük bir detay. Dönerek mankenin eline yerleşiyor ve görünüm tamamlanıyor.</p>
+      <div class="price"><b>Yakında</b><span>Mağazada</span></div>
+    </div>
+  </section>
+
+  <section class="final left" id="final">
+    <div class="panel">
+      <div class="idx">THE LOOK</div>
+      <h2 lang="en">Dare<em>to be seen.</em></h2>
+      <p>Görünüm tamam. Parçaları aç kapat, mankene tıkla, ışıltıyı gör.</p>
+      <div class="chips" role="group" aria-label="Parçalar" lang="en">
+        <button data-g="tee" aria-pressed="true"><i></i>Tee</button>
+        <button data-g="zip" aria-pressed="true"><i></i>Zip</button>
+        <button data-g="pants" aria-pressed="true"><i></i>Cosmos</button>
+        <button data-g="coat" aria-pressed="true"><i></i>Fur</button>
+        <button data-g="card" aria-pressed="true" lang="en"><i></i>Cornalina</button>
+      </div>
+      <div class="price"><b id="total">₺12.800</b><span>Fiyatı belli parçalar</span></div>
+      <a class="cta" href="https://www.instagram.com/studiosentinel/" target="_blank" rel="noopener" lang="en">@studiosentinel</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <span lang="en">© Sentinel</span>
+  <span>Interaktif konsept</span>
+  <a href="https://www.instagram.com/studiosentinel/" target="_blank" rel="noopener">Instagram</a>
+</footer>
+
+<script>
+(() => {
+  const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+  const NS = 'http://www.w3.org/2000/svg';
+  const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const range = (p, a, b) => clamp((p - a) / (b - a));
+  const easeOut = t => 1 - Math.pow(1 - t, 3);
+  const easeInOut = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  const backOut = t => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
+  const bounce = t => {
+    const n = 7.5625, d = 2.75;
+    if (t < 1 / d) return n * t * t;
+    if (t < 2 / d) return n * (t -= 1.5 / d) * t + .75;
+    if (t < 2.5 / d) return n * (t -= 2.25 / d) * t + .9375;
+    return n * (t -= 2.625 / d) * t + .984375;
+  };
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let W = innerWidth, H = innerHeight;
+
+  // seeded random so the choreography is the same every visit
+  let seed = 7; const rnd = (a = 0, b = 1) => { seed = (seed * 16807) % 2147483647; return a + (b - a) * (seed / 2147483647); };
+
+  /* ---------------- scattered crystals ---------------- */
+  const inPoly = (x, y, poly) => {
+    let inside = false;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+      const [xi, yi] = poly[i], [xj, yj] = poly[j];
+      if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) inside = !inside;
+    }
+    return inside;
+  };
+  const scatter = (n, polys, box) => {
+    const pts = [];
+    while (pts.length < n) {
+      const x = rnd(box[0], box[2]), y = rnd(box[1], box[3]);
+      if (polys.some(p => inPoly(x, y, p))) pts.push({ x, y, r: rnd(.5, 1.5) });
+    }
+    return pts;
+  };
+  const gemSVG = (p, body, tw) =>
+    `<g transform="translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})"><circle r="${p.r.toFixed(2)}" fill="${body}"/>` +
+    `<circle r="${(p.r * .45).toFixed(2)}" cx="${(-p.r * .3).toFixed(2)}" cy="${(-p.r * .3).toFixed(2)}" fill="#fff"${tw ? ` class="gem" style="animation-delay:${tw}s"` : ''}/></g>`;
+
+  /* SENTINEL in crystals: rasterise the word, then pack baguettes, ovals and rounds into the letter mask */
+  async function buildTeeLogo() {
+    try { await document.fonts.load('800 100px Syne'); } catch (e) {}
+    const BW = 92, BH = 30, X0 = 104, Y0 = 158, S = 10, word = 'SENTINEL';
+    const cv = document.createElement('canvas'); cv.width = BW * S; cv.height = BH * S;
+    const c = cv.getContext('2d');
+    c.font = '800 100px Syne, "Arial Black", sans-serif';
+    c.letterSpacing = '9px';
+    const m = c.measureText(word);
+    const tw = m.actualBoundingBoxLeft + m.actualBoundingBoxRight, th = m.actualBoundingBoxAscent + m.actualBoundingBoxDescent;
+    c.setTransform(cv.width / tw, 0, 0, cv.height / th, 0, 0);
+    c.fillText(word, m.actualBoundingBoxLeft, m.actualBoundingBoxAscent);
+    c.lineWidth = 3; c.lineJoin = 'round'; c.strokeText(word, m.actualBoundingBoxLeft, m.actualBoundingBoxAscent);  // chunkier strokes, like the real embroidery
+    const data = c.getImageData(0, 0, cv.width, cv.height).data;
+    const inMask = (x, y) => {
+      const px = Math.round(x * S), py = Math.round(y * S);
+      return px >= 0 && py >= 0 && px < cv.width && py < cv.height && data[(py * cv.width + px) * 4 + 3] > 128;
+    };
+    const Q = 4, gw = BW * Q, gh = BH * Q, occ = new Uint8Array(gw * gh);
+    const stones = [];
+    const place = (type, hl, hw, a) => {
+      const x = rnd(0, BW), y = rnd(0, BH);
+      if (!inMask(x, y)) return;
+      const ca = Math.cos(a), sa = Math.sin(a), pad = .12, R = Math.hypot(hl, hw) + pad;
+      const inside = (px, py, e) => {
+        const dx = px - x, dy = py - y, lx = dx * ca + dy * sa, ly = -dx * sa + dy * ca;
+        return type === 'bag' ? Math.abs(lx) <= hl + e && Math.abs(ly) <= hw + e : (lx / (hl + e)) ** 2 + (ly / (hw + e)) ** 2 <= 1;
+      };
+      const cells = []; let out = 0, total = 0;
+      for (let gy = Math.max(0, Math.floor((y - R) * Q)); gy < Math.min(gh, Math.ceil((y + R) * Q)); gy++)
+        for (let gx = Math.max(0, Math.floor((x - R) * Q)); gx < Math.min(gw, Math.ceil((x + R) * Q)); gx++) {
+          const cx = (gx + .5) / Q, cy = (gy + .5) / Q;
+          if (!inside(cx, cy, pad)) continue;
+          if (occ[gy * gw + gx]) return;
+          if (inside(cx, cy, 0)) { total++; if (!inMask(cx, cy)) out++; }
+          cells.push(gy * gw + gx);
+        }
+      if (!total || out / total > .12) return;
+      cells.forEach(i => occ[i] = 1);
+      stones.push({ type, x: X0 + x, y: Y0 + y, hl, hw, a: a * 180 / Math.PI });
+    };
+    for (let i = 0; i < 3000; i++) place('bag', rnd(1.6, 2.4), rnd(.7, .95), (rnd() < .5 ? 0 : Math.PI / 2) + rnd(-.3, .3));
+    for (let i = 0; i < 1500; i++) place('oval', rnd(1.1, 1.5), rnd(.75, 1), rnd(0, Math.PI));
+    for (let i = 0; i < 3000; i++) { const r = rnd(.6, .9); place('rnd', r, r, 0); }
+    for (let i = 0; i < 3000; i++) { const r = rnd(.35, .5); place('rnd', r, r, 0); }
+
+    const f = n => n.toFixed(2), edge = 'stroke="#3c4047" stroke-width=".14"';
+    $('#tee-gems').innerHTML = stones.map((s, i) => {
+      const t = `transform="translate(${f(s.x)} ${f(s.y)}) rotate(${f(s.a)})"`;
+      const tw = i % 9 === 0 ? `<circle class="gem" r=".32" fill="#fff" style="animation-delay:${f(rnd(0, 2))}s"/>` : '';
+      if (s.type === 'bag') return `<g ${t}><rect x="${f(-s.hl)}" y="${f(-s.hw)}" width="${f(s.hl * 2)}" height="${f(s.hw * 2)}" rx=".12" fill="url(#bag)" ${edge}/>` +
+        `<rect x="${f(-s.hl + .35)}" y="${f(-s.hw + .25)}" width="${f(s.hl * 2 - .7)}" height="${f(s.hw * 2 - .5)}" fill="#fff" opacity=".45"/>${tw}</g>`;
+      return `<g ${t}><ellipse rx="${f(s.hl)}" ry="${f(s.hw)}" fill="url(#rnd)" ${edge}/>${tw}</g>`;
+    }).join('');
+
+    // flyers get a rasterised copy: hundreds of stones x a dozen live <use> clones would be heavy
+    const svg = `<svg xmlns="${NS}" viewBox="66 96 168 214"><defs>${['teeShade', 'bag', 'rnd', 'glowS'].map(id => document.getElementById(id).outerHTML).join('')}</defs>${$('#tee-art').outerHTML}</svg>`;
+    const url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    tees.forEach(t => t.el.innerHTML = `<img src="${url}" alt="" style="width:100%;display:block">`);
+  }
+
+  const zipL = [[140, 108], [120, 101], [87, 112], [64, 130], [60, 170], [55, 302], [86, 306], [92, 238], [99, 294], [132, 294]];
+  const zipR = zipL.map(([x, y]) => [300 - x, y]);
+  const zipGems = scatter(150, [zipL, zipR], [58, 98, 242, 306]);
+  const zipGemMarkup = zipGems.map((p, i) => gemSVG(p, '#d7dae0', i % 3 ? 0 : rnd(0, 2).toFixed(2)));
+  $('#zip-gems').innerHTML = zipGemMarkup.join('');
+
+  const pantsL = [[103, 296], [149, 296], [142, 560], [109, 560]];
+  const pantsR = pantsL.map(([x, y]) => [300 - x, y]);
+  $('#pants-gems').innerHTML = scatter(40, [pantsL, pantsR], [100, 290, 200, 560]).map((p, i) => gemSVG({ ...p, r: p.r * .9 }, '#e9eaee', i % 2 ? 0 : rnd(0, 2).toFixed(2))).join('');
+
+  // mannequin's zip: body without gems + its own gems that fly in from chaos
+  const defs = $('svg defs');
+  const zipBody = $('#zip-art').cloneNode(true);
+  zipBody.id = 'zip-body';
+  zipBody.querySelector('#zip-gems').remove();
+  defs.appendChild(zipBody);
+  const mqZipGems = $('#mq-zipgems');
+  mqZipGems.innerHTML = zipGemMarkup.map(m => `<g class="zg">${m}</g>`).join('');
+  const zgs = [...mqZipGems.querySelectorAll('.zg')].map(el => ({
+    el, dx: rnd(-260, 260), dy: rnd(-320, 260), d: rnd(0, .35), s: rnd(1.5, 4)
+  }));
+
+  /* ---------------- flyers ---------------- */
+  const fly = $('#fly');
+  const fs = Math.min(1, innerWidth / 1100) * .55 + .45;  // smaller flyers on phones
+  const mk = (art, vb, w) => {
+    const d = document.createElement('div');
+    d.style.width = w * fs + 'px';
+    d.innerHTML = `<svg viewBox="${vb}"><use href="#${art}"/></svg>`;
+    fly.appendChild(d); return d;
+  };
+  const small = innerWidth < 700;
+  const tees = reduce ? [] : Array.from({ length: small ? 7 : 12 }, (_, i) => ({
+    el: mk('tee-art', '66 96 168 214', rnd(90, 160)),
+    sx: rnd(-.65, .65), sy: rnd(.6, .9), ex: rnd(-.6, .6), ey: rnd(-.9, -.7),
+    arc: rnd(-.35, .35), r0: rnd(-70, 70), r1: rnd(-260, 260), d: i * .04, dur: rnd(.38, .55), ph: rnd(0, 6)
+  }));
+  buildTeeLogo();
+
+  // zip jackets slide sideways in chaotic rows
+  const zips = reduce ? [] : Array.from({ length: small ? 6 : 9 }, (_, i) => {
+    const dir = i % 2 ? 1 : -1;
+    return {
+      el: mk('zip-art', '48 66 204 256', rnd(110, 200)), dir,
+      row: rnd(-.42, .42), tilt: rnd(-18, 18), speed: rnd(1.1, 1.9), d: rnd(0, .25), ph: rnd(0, 6)
+    };
+  });
+  const pants = reduce ? [] : Array.from({ length: small ? 5 : 8 }, (_, i) => ({
+    el: mk('pants-art', '96 244 108 326', rnd(50, 90)),
+    sx: rnd(-.6, .6), ex: rnd(-.6, .6), r0: rnd(-40, 40), r1: rnd(-220, 220), d: i * .05, dur: rnd(.35, .5), ph: rnd(0, 6)
+  }));
+
+  /* ---------------- coat rack ---------------- */
+  const rack = $('#rack');
+  const furs = ['#e7dccb', '#7a5236', '#1c1b1d', '#b9b4ad', '#3d2a20', '#f2ede4', '#5a4a3c', '#d6c7b0'];
+  const hangs = furs.map(c => {
+    const d = document.createElement('div');
+    d.className = 'hang';
+    d.style.setProperty('--fur', c);
+    d.style.setProperty('--fur-dark', c);
+    d.innerHTML = `<svg viewBox="50 52 200 436"><use href="#hanger"/><g transform="translate(0 6)"><use href="#coat-art"/></g></svg>`;
+    rack.appendChild(d);
+    return { el: d, ang: 0, vel: 0, off: rnd(-20, 20) };
+  });
+
+  /* ---------------- debris anchoring ---------------- */
+  const debris = $$('.debris > *').map(el => ({
+    el, at: el.dataset.at, y: +el.dataset.y || 0, x: el.dataset.x, r: +el.dataset.r || 0, s: +el.dataset.s || 0, top: 0
+  }));
+  const placeDebris = () => {
+    const foot = document.querySelector('footer');
+    const docH = foot.offsetTop + foot.offsetHeight;
+    $$('.debris').forEach(l => l.style.height = docH + 'px');
+    debris.forEach(placeOne);
+  };
+  const placeOne = d => {
+    const sec = document.getElementById(d.at);
+    d.top = sec.offsetTop + d.y * sec.offsetHeight;
+    d.el.style.top = d.top + 'px';
+    if (d.x != null) d.el.style.left = (+d.x * 100) + 'vw';
+  };
+
+  /* ---------------- mannequin garments ---------------- */
+  const ORDER = ['tee', 'zip', 'pants', 'coat', 'card'];
+  const G = { tee: $('#mq-tee'), zip: $('#mq-zip'), pants: $('#mq-pants'), coat: $('#mq-coat'), card: $('#mq-card') };
+  const mq = $('#mq'), wordmark = $('#wordmark'), flashEl = $('#flash');
+  const sections = ['hero', ...ORDER, 'final'].map(id => ({ id, el: document.getElementById(id === 'coat' ? 'coat' : id) }));
+  const panels = $$('.panel');
+  const dots = $$('nav.dots button');
+  const P = {};
+
+  /* ---------------- canvases ---------------- */
+  const sc = $('#stars'), sx = sc.getContext('2d');
+  const pc = $('#sparks'), px = pc.getContext('2d');
+  const DPR = Math.min(devicePixelRatio || 1, 2);
+  const stars = Array.from({ length: innerWidth < 700 ? 120 : 220 }, () => ({ x: Math.random(), y: Math.random(), z: Math.random() * .9 + .1, t: Math.random() * 6, red: Math.random() < .12 }));
+  const sparks = [];
+  // panels sit above the bottom edge on phones: CSS needs each one's real height
+  const measurePanels = () => {
+    let max = 0;
+    panels.forEach(p => { const h = p.offsetHeight; p.style.setProperty('--ph', h + 'px'); max = Math.max(max, h); });
+    document.documentElement.style.setProperty('--ph', max + 'px');
+  };
+  let cw = 0, ch = 0;
+  const resize = () => {
+    W = innerWidth; H = innerHeight;
+    // mobile toolbars resize the viewport while scrolling: only reallocate when it is really needed
+    if (W !== cw || H > ch) {
+      ch = W !== cw ? H : Math.max(H, ch);
+      cw = W;
+      for (const c of [sc, pc]) { c.width = W * DPR; c.height = ch * DPR; c.style.height = ch + 'px'; }
+      sx.setTransform(DPR, 0, 0, DPR, 0, 0); px.setTransform(DPR, 0, 0, DPR, 0, 0);
+    }
+    measurePanels();
+    placeDebris();
+  };
+  resize(); addEventListener('resize', resize);
+  addEventListener('load', () => { measurePanels(); placeDebris(); });
+  document.fonts && document.fonts.ready.then(() => { measurePanels(); placeDebris(); });
+
+  const star4 = (ctx, x, y, r) => {
+    ctx.beginPath();
+    ctx.moveTo(x, y - r); ctx.quadraticCurveTo(x, y, x + r, y); ctx.quadraticCurveTo(x, y, x, y + r);
+    ctx.quadraticCurveTo(x, y, x - r, y); ctx.quadraticCurveTo(x, y, x, y - r); ctx.fill();
+  };
+  const hues = ['#ffffff', '#f1ede6', '#ff4a52', '#dfe6ff'];
+  const burst = (x, y, n = 60, power = 9) => {
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2, s = Math.random() * power + 1;
+      sparks.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 2, life: 1, r: Math.random() * 5 + 2, c: hues[i % 4], g: .18 });
+    }
+  };
+  const flash = () => {
+    if (reduce) return;
+    flashEl.classList.remove('go'); void flashEl.offsetWidth; flashEl.classList.add('go');
+  };
+
+  /* ---------------- input ---------------- */
+  let mx = 0, my = 0, tx = 0, ty = 0, lastTrail = 0;
+  addEventListener('pointermove', e => {
+    mx = e.clientX / W - .5; my = e.clientY / H - .5;
+    if (reduce) return;
+    const now = performance.now();
+    if (now - lastTrail > 16) {
+      lastTrail = now;
+      sparks.push({ x: e.clientX, y: e.clientY, vx: (Math.random() - .5) * 1.2, vy: Math.random() * .8 + .2, life: 1, r: Math.random() * 4 + 2, c: hues[(Math.random() * 4) | 0], g: .02 });
+    }
+  });
+  // touch: sparkle trail + mannequin follows the finger
+  addEventListener('touchmove', e => {
+    const t = e.touches[0]; if (!t) return;
+    mx = (t.clientX / W - .5) * .6; my = (t.clientY / H - .5) * .6;
+    if (reduce) return;
+    sparks.push({ x: t.clientX, y: t.clientY, vx: (Math.random() - .5) * 1.5, vy: Math.random() * .8 + .2, life: 1, r: Math.random() * 4 + 2, c: hues[(Math.random() * 4) | 0], g: .02 });
+  }, { passive: true });
+  mq.addEventListener('click', e => {
+    burst(e.clientX, e.clientY, 70, 10); flash();
+    mq.classList.remove('wiggle'); void mq.offsetWidth; mq.classList.add('wiggle');
+  });
+
+  $$('.swatches button').forEach(b => b.addEventListener('click', () => {
+    $$('.swatches button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    document.documentElement.style.setProperty('--fur', b.dataset.fur);
+    document.documentElement.style.setProperty('--fur-dark', b.dataset.dark);
+    const r = mq.getBoundingClientRect();
+    burst(r.left + r.width / 2, r.top + r.height * .35, 40, 7);
+  }));
+
+  const prices = { tee: 2200, zip: 0, pants: 2600, coat: 8000, card: 0 };
+  const hidden = {};
+  $$('.chips button').forEach(b => b.addEventListener('click', () => {
+    const g = b.dataset.g, on = b.getAttribute('aria-pressed') !== 'true';
+    b.setAttribute('aria-pressed', on);
+    hidden[g] = !on;
+    document.querySelector(`.g-outer[data-g="${g}"]`).classList.toggle('off', !on);
+    const sum = ORDER.reduce((s, k) => s + (hidden[k] ? 0 : prices[k]), 0);
+    $('#total').textContent = '₺' + sum.toLocaleString('tr-TR');
+  }));
+
+  dots.forEach(b => b.addEventListener('click', () => document.getElementById(b.dataset.to).scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' })));
+
+  // random glitch on the wordmark
+  const glitch = () => {
+    if (!reduce) { wordmark.classList.add('gl'); setTimeout(() => wordmark.classList.remove('gl'), 90 + Math.random() * 140); }
+    setTimeout(glitch, 1400 + Math.random() * 3200);
+  };
+  setTimeout(glitch, 1200);
+
+  /* ---------------- main loop ---------------- */
+  let lastY = scrollY, vel = 0, burstDone = false, time = 0;
+  const landed = {};
+  const lookEl = $('#look b');
+  let zipT = -1;
+
+  function frame(now) {
+    time = now / 1000;
+    const y = scrollY;
+    vel = lerp(vel, y - lastY, .2); lastY = y;
+
+    for (const s of sections) {
+      const r = s.el.getBoundingClientRect();
+      P[s.id] = s.id === 'hero' ? clamp(y / H) : clamp((H * .75 - r.top) / r.height);
+    }
+    let active = 0;
+    sections.forEach((s, i) => { if (s.el.getBoundingClientRect().top < H * .5) active = i; });
+    dots.forEach((d, i) => d.classList.toggle('on', i === active));
+    panels.forEach(p => {
+      const r = p.parentElement.getBoundingClientRect();
+      p.classList.toggle('in', r.top < H * .7 && r.bottom > H * .45);
+    });
+
+    // debris parallax + jitter
+    for (const d of debris) {
+      const off = (y + H / 2 - d.top) * d.s;
+      if (Math.abs(y + H / 2 - d.top) > H * 2) continue;
+      d.el.style.transform = `translateY(${off}px) rotate(${d.r + Math.sin(time * .7 + d.top) * .8 + vel * .02}deg)`;
+    }
+
+    // wordmark
+    const hp = P.hero;
+    wordmark.style.letterSpacing = (-0.02 + hp * .35) + 'em';
+    wordmark.style.opacity = lerp(1, .07, easeOut(hp));
+    wordmark.style.transform = `translate(-50%,-50%) translate(${mx * -30}px,${my * -20 - hp * 40}px) scale(${1 + hp * .15}) rotate(${-hp * 4}deg)`;
+
+    // mannequin tilt + idle sway
+    tx = lerp(tx, mx, .06); ty = lerp(ty, my, .06);
+    mq.style.transform = `rotateY(${tx * 26 + Math.sin(time * .9) * 1.5}deg) rotateX(${-ty * 8}deg) rotateZ(${vel * .03}deg)`;
+
+    // ---- TEE
+    const tp = P.tee;
+    tees.forEach(f => {
+      const q = range(tp, f.d, f.d + f.dur);
+      const v = q > 0 && q < 1;
+      f.el.style.opacity = v ? Math.sin(q * Math.PI) : 0;
+      if (!v) return;
+      const x = lerp(f.sx, f.ex, q) * W + Math.sin(q * Math.PI) * f.arc * W;
+      const yy = lerp(f.sy, f.ey, easeInOut(q)) * H;
+      f.el.style.transform = `translate(-50%,-50%) translate(${x}px,${yy}px) rotate(${lerp(f.r0, f.r1, q)}deg) rotateY(${Math.sin(time * 9 + f.ph) * 45}deg)`;
+    });
+    const tt = range(tp, .38, .72);
+    G.tee.setAttribute('opacity', tt > 0 ? clamp(tt * 3) : 0);
+    const te = backOut(tt);
+    G.tee.style.transform = `translate(${(1 - te) * -180}px,${(1 - te) * -320}px) rotate(${(1 - te) * -40}deg) scale(${1 + (1 - te) * .8})`;
+
+    // ---- ZIP: jackets slide across, one slides on, crystals converge from chaos
+    const zp = P.zip;
+    zips.forEach(f => {
+      const q = range(zp, f.d, f.d + .6);
+      const v = q > 0 && q < 1;
+      f.el.style.opacity = v ? Math.min(1, Math.sin(q * Math.PI) * 2) : 0;
+      if (!v) return;
+      const x = f.dir * lerp(-.75, .75, q) * W * f.speed;
+      const yy = f.row * H + Math.sin(q * 8 + f.ph) * 14;
+      f.el.style.transform = `translate(-50%,-50%) translate(${x}px,${yy}px) rotate(${f.tilt + f.dir * vel * .15}deg) skewX(${f.dir * -8}deg)`;
+    });
+    const zt = range(zp, .4, .74);
+    G.zip.setAttribute('opacity', zt > 0 ? 1 : 0);
+    const ze = easeOut(zt);
+    G.zip.style.transform = `translateX(${(1 - ze) * -640}px) rotate(${Math.sin(zt * Math.PI * 3) * (1 - zt) * -12}deg)`;
+    const gt = range(zp, .55, .95);
+    if (gt !== zipT) {
+      zipT = gt;
+      for (const g of zgs) {
+        const q = easeOut(range(gt, g.d, g.d + .65));
+        g.el.style.opacity = gt > 0 ? q : 0;
+        g.el.style.transform = q >= 1 ? '' : `translate(${(1 - q) * g.dx}px,${(1 - q) * g.dy}px) scale(${lerp(g.s, 1, q)})`;
+      }
+    }
+
+    // ---- PANTS
+    const pp = P.pants;
+    pants.forEach(f => {
+      const q = range(pp, f.d, f.d + f.dur);
+      const v = q > 0 && q < 1;
+      f.el.style.opacity = v ? Math.min(1, Math.sin(q * Math.PI) * 1.4) : 0;
+      if (!v) return;
+      const x = lerp(f.sx, f.ex, q) * W * .9;
+      const yy = lerp(-.8, .8, q) * H;
+      f.el.style.transform = `translate(-50%,-50%) translate(${x}px,${yy}px) rotate(${lerp(f.r0, f.r1, q)}deg) rotateX(${Math.sin(time * 6 + f.ph) * 50}deg)`;
+    });
+    const pt = range(pp, .3, .68);
+    G.pants.setAttribute('opacity', pt > 0 ? 1 : 0);
+    G.pants.style.transform = `translateY(${(1 - bounce(pt)) * -760}px) rotate(${(1 - pt) * 8}deg)`;
+
+    // ---- COATS
+    const cp = P.coat;
+    rack.style.opacity = range(cp, 0, .12) * (1 - range(cp, .88, 1));
+    const hw = hangs[0].el.offsetWidth || 150, gap = hw * 1.15;
+    const travel = W + hangs.length * gap + hw;
+    hangs.forEach((h, i) => {
+      const x = W + i * gap - cp * travel * 1.05;
+      const target = clamp(-vel * .9, -28, 28);
+      h.vel += (target - h.ang) * .06; h.vel *= .88; h.ang += h.vel;
+      h.el.style.transform = `translateX(${x}px) rotate(${h.ang + Math.sin(time * 1.3 + h.off) * 1.5}deg)`;
+    });
+    const ct = range(cp, .42, .8);
+    G.coat.setAttribute('opacity', ct > 0 ? 1 : 0);
+    const ce = easeOut(ct);
+    G.coat.style.transform = `translateX(${(1 - ce) * 640}px) rotate(${Math.sin(ct * Math.PI * 3) * (1 - ct) * 14}deg)`;
+
+    // ---- CARDHOLDER
+    const kt = range(P.card, .28, .66);
+    G.card.setAttribute('opacity', kt > 0 ? 1 : 0);
+    const ke = backOut(kt);
+    G.card.style.transform = `translate(${(1 - ke) * 260}px,${(1 - ke) * -200}px) rotate(${(1 - ke) * 900}deg) scale(${.4 + ke * .6})`;
+
+    // camera flash + counter as each piece lands
+    const T = { tee: tt, zip: Math.min(zt, gt), pants: pt, coat: ct, card: kt };
+    let dressed = 0;
+    for (const k of ORDER) {
+      const done = T[k] > .98;
+      if (done && !landed[k] && !hidden[k]) flash();
+      landed[k] = done;
+      if (done && !hidden[k]) dressed++;
+    }
+    if (lookEl.textContent != dressed) lookEl.textContent = dressed;
+
+    if (P.final > .2 && !burstDone) {
+      burstDone = true;
+      const r = mq.getBoundingClientRect();
+      burst(r.left + r.width / 2, r.top + r.height * .4, reduce ? 20 : 180, 14);
+    } else if (P.final < .1) burstDone = false;
+
+    drawStars(y); drawSparks();
+    requestAnimationFrame(frame);
+  }
+
+  function drawStars(y) {
+    sx.clearRect(0, 0, W, H);
+    for (const s of stars) {
+      const yy = ((s.y * H - y * s.z * .25) % H + H) % H;
+      const xx = s.x * W + tx * -40 * s.z;
+      const a = .2 + .8 * Math.abs(Math.sin(time * (.6 + s.z) + s.t));
+      sx.globalAlpha = a * s.z;
+      sx.fillStyle = s.red ? '#ff3b44' : '#fff';
+      if (s.z > .8) star4(sx, xx, yy, 4 * s.z); else sx.fillRect(xx, yy, 1.4 * s.z + .3, 1.4 * s.z + .3);
+    }
+    sx.globalAlpha = 1;
+  }
+  function drawSparks() {
+    px.clearRect(0, 0, W, H);
+    for (let i = sparks.length - 1; i >= 0; i--) {
+      const s = sparks[i];
+      s.x += s.vx; s.y += s.vy; s.vy += s.g; s.vx *= .98; s.life -= .018;
+      if (s.life <= 0) { sparks.splice(i, 1); continue; }
+      px.globalAlpha = s.life; px.fillStyle = s.c;
+      star4(px, s.x, s.y, s.r * s.life + .5);
+    }
+    px.globalAlpha = 1;
+    if (sparks.length > 600) sparks.splice(0, sparks.length - 600);
+  }
+
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
